@@ -64,11 +64,13 @@ class GpxService {
 
   /// Генерировать содержимое GPX файла в формате 1.1
   String _generateGpxContent(CatchRecord catch_) {
-    final dateFormatter = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    final timestamp = dateFormatter.format(catch_.timestamp.toUtc());
+    final timestampFormatter = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    final timestamp = timestampFormatter.format(catch_.timestamp.toUtc());
     
-    // Название точки: имя пользователя + тип поимки
-    final pointName = '${catch_.userName} - ${catch_.catchTypeDisplay}';
+    // Название точки: имя пользователя + дата + время поимки
+    final dateFormatter = DateFormat('dd.MM.yy');
+    final timeFormatter = DateFormat('HH:mm');
+    final pointName = '${catch_.userName} - ${dateFormatter.format(catch_.timestamp)} - ${timeFormatter.format(catch_.timestamp)}';
     
     // Описание с дополнительной информацией
     final description = '''
@@ -192,7 +194,10 @@ class GpxService {
     
     final waypoints = catches.map((catch_) {
       final timestamp = dateFormatter.format(catch_.timestamp.toUtc());
-      final pointName = '${catch_.userName} - ${catch_.catchTypeDisplay}';
+      // Название точки: имя пользователя + дата + время поимки
+      final pointDateFormatter = DateFormat('dd.MM.yy');
+      final pointTimeFormatter = DateFormat('HH:mm');
+      final pointName = '${catch_.userName} - ${pointDateFormatter.format(catch_.timestamp)} - ${pointTimeFormatter.format(catch_.timestamp)}';
       
       final description = '''
 Поимка: ${catch_.catchTypeDisplay}
