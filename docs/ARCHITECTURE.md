@@ -29,11 +29,14 @@ cyfishon/
 │   │   ├── database_service.dart # SQLite база
 │   │   ├── telegram_service.dart # Telegram API
 │   │   ├── sync_service.dart  # Синхронизация
-│   │   └── log_service.dart   # Логирование
+│   │   ├── log_service.dart   # Логирование
+│   │   ├── compass_service.dart # Компас и направление
+│   │   └── server_sync_service.dart # Синхронизация с сервером
 │   └── widgets/
 │       ├── catch_button.dart  # Кнопка поимки
 │       ├── status_indicator.dart # Индикатор статуса
-│       └── bottom_nav.dart    # Нижняя навигация
+│       ├── bottom_nav.dart    # Нижняя навигация
+│       └── map_widgets.dart   # Виджеты карты
 ```
 
 ## 🔄 Поток данных
@@ -148,6 +151,40 @@ class SyncService {
   
   // Проверка интернета
   Future<bool> hasInternetConnection();
+}
+```
+
+### CompassService
+```dart
+class CompassService {
+  // Проверка доступности компаса
+  Future<bool> isCompassAvailable();
+  
+  // Поток данных направления (в градусах)
+  Stream<double> get headingStream;
+  
+  // Запуск прослушивания компаса
+  Future<void> startListening();
+  
+  // Остановка прослушивания
+  Future<void> stopListening();
+}
+```
+
+### ServerSyncService
+```dart
+class ServerSyncService {
+  // Синхронизация поимок с сервера
+  Future<void> syncFromServer();
+  
+  // Отправка поимок на сервер
+  Future<void> syncToServer();
+  
+  // Получение всех поимок с сервера
+  Future<List<CatchRecord>> fetchCatchesFromServer();
+  
+  // Отправка поимки на сервер
+  Future<bool> sendCatchToServer(CatchRecord catch);
 }
 ```
 
