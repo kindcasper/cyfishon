@@ -57,22 +57,77 @@ cyfishon/
 
 ## 💾 База данных
 
-### Таблица: catches
+### Таблица: catches (версия 3)
 ```sql
 CREATE TABLE catches (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   timestamp INTEGER NOT NULL,
-  user_name TEXT NOT NULL,
+  user_id TEXT NOT NULL,           -- НОВОЕ: уникальный ID пользователя
+  user_name TEXT NOT NULL,         -- отображаемое имя (может изменяться)
   latitude REAL NOT NULL,
   longitude REAL NOT NULL,
   catch_type TEXT NOT NULL, -- 'fishon', 'double', 'triple'
   telegram_status TEXT DEFAULT 'pending', -- 'pending', 'sent', 'failed'
-  server_status TEXT DEFAULT 'pending', -- для будущего
+  server_status TEXT DEFAULT 'pending',
   retry_count INTEGER DEFAULT 0,
   last_error TEXT,
+  is_synced_from_server INTEGER DEFAULT 0, -- флаг синхронизации с сервера
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );
+
+-- Индексы для быстрого поиска
+CREATE INDEX idx_catches_user_id ON catches(user_id);
+CREATE INDEX idx_catches_user_name ON catches(user_name);
+CREATE INDEX idx_catches_timestamp ON catches(timestamp DESC);
+```
+
+## 🆔 Система уникальных ID пользователей
+
+### Принцип работы
+- **user_id** - постоянный уникальный идентификатор устройства (например: `user_a6912f15`)
+- **user_name** - отображаемое имя пользователя (может изменяться)
+- **Все операции фильтрации и поиска** должны использовать `user_id`, а не `user_name`
+
+### Генерация user_id
+```dart
+// UserService генерирует ID на основе характеристик устройства
+final deviceInfo = await DeviceInfoPlugin().androidInfo; // или iosInfo
+final deviceId = '${deviceInfo.id}-${deviceInfo.model}-${deviceInfo.brand}';
+final hash = sha256.convert(utf8.encode(deviceId)).toString();
+final userId = 'user_${hash.substring(0, 8)}'; // user_a6912f15
+```
+
+### ⚠️ ВАЖНО: Правила работы с пользователями
+
+#### ✅ ПРАВИЛЬНО - используйте user_id:
+```dart
+// Фильтрация поимок конкретного пользователя
+final catches = await db.getCatches(userId: currentUserId);
+
+// Определение "моей" поимки
+final isMyCatch = catch.userId == currentUserId;
+
+// Поиск в базе данных
+WHERE user_id = ?
+```
+
+#### ❌ НЕПРАВИЛЬНО - НЕ используйте user_name:
+```dart
+// НЕ ДЕЛАЙТЕ ТАК - имя может измениться!
+final catches = await db.getCatches(userName: currentUserName);
+final isMyCatch = catch.userName == currentUserName;
+WHERE user_name = ?
+```
+
+### Миграция данных
+При обновлении с версии 2 до версии 3:
+```sql
+-- Добавляем поле user_id
+ALTER TABLE catches ADD COLUMN user_id TEXT DEFAULT "";
+
+-- Обновляем существующие записи
+UPDATE catches SET user_id = "legacy_" || user_name WHERE user_id = "";
 ```
 
 ### Таблица: logs

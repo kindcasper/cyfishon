@@ -45,6 +45,12 @@ class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<bool>? _dataUpdateSubscription;
   String _currentUserName = '';
   String? _currentUserId;
+  
+  // Кулдауны для кнопок (независимые)
+  DateTime? _lastFishOnPress;
+  DateTime? _lastDoublePress;
+  DateTime? _lastTriplePress;
+  static const int _cooldownSeconds = 10;
 
   @override
   void initState() {
@@ -127,6 +133,84 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       await _log.error('Ошибка загрузки последних поимок', e);
     }
+  }
+
+  /// Проверить кулдаун для типа поимки
+  bool _isOnCooldown(String catchType) {
+    final now = DateTime.now();
+    DateTime? lastPress;
+    
+    switch (catchType) {
+      case 'fishon':
+        lastPress = _lastFishOnPress;
+        break;
+      case 'double':
+        lastPress = _lastDoublePress;
+        break;
+      case 'triple':
+        lastPress = _lastTriplePress;
+        break;
+    }
+    
+    if (lastPress == null) return false;
+    
+    return now.difference(lastPress).inSeconds < _cooldownSeconds;
+  }
+  
+  /// Получить оставшееся время кулдауна
+  int _getRemainingCooldown(String catchType) {
+    final now = DateTime.now();
+    DateTime? lastPress;
+    
+    switch (catchType) {
+      case 'fishon':
+        lastPress = _lastFishOnPress;
+        break;
+      case 'double':
+        lastPress = _lastDoublePress;
+        break;
+      case 'triple':
+        lastPress = _lastTriplePress;
+        break;
+    }
+    
+    if (lastPress == null) return 0;
+    
+    final elapsed = now.difference(lastPress).inSeconds;
+    return _cooldownSeconds - elapsed;
+  }
+  
+  /// Обработать нажатие кнопки поимки
+  void _handleCatchButtonPress(String catchType) {
+    // Проверяем кулдаун
+    if (_isOnCooldown(catchType)) {
+      final remaining = _getRemainingCooldown(catchType);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${remaining}sec minimum cooldown'),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    
+    // Обновляем время последнего нажатия
+    final now = DateTime.now();
+    switch (catchType) {
+      case 'fishon':
+        _lastFishOnPress = now;
+        break;
+      case 'double':
+        _lastDoublePress = now;
+        break;
+      case 'triple':
+        _lastTriplePress = now;
+        break;
+    }
+    
+    // Создаем поимку
+    _createCatch(catchType);
   }
 
   /// Создать новую поимку
@@ -662,7 +746,7 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       height: 80,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : () => _createCatch(type),
+        onPressed: _isLoading ? null : () => _handleCatchButtonPress(type),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,

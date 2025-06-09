@@ -69,20 +69,60 @@
 
 ## 4. Структура данных
 
-### 4.1 Модель поимки (CatchRecord)
+### 4.1 Модель поимки (CatchRecord) - версия 3
 ```dart
 {
   id: int,
   timestamp: DateTime,
-  userName: String,
+  userId: String,        // НОВОЕ: уникальный ID пользователя
+  userName: String,      // отображаемое имя (может изменяться)
   latitude: double,
   longitude: double,
   catchType: String, // 'fishon', 'double', 'triple'
   telegramStatus: String, // 'pending', 'sent', 'failed'
   serverStatus: String, // 'pending', 'sent', 'failed'
   retryCount: int,
-  lastError: String?
+  lastError: String?,
+  isSyncedFromServer: bool // флаг синхронизации с сервера
 }
+```
+
+### 4.2 Система уникальных ID пользователей
+
+**⚠️ КРИТИЧЕСКИ ВАЖНО:** Все операции с пользователями должны использовать `userId`, а НЕ `userName`!
+
+#### Принцип работы:
+- **userId** - постоянный уникальный идентификатор устройства (например: `user_a6912f15`)
+- **userName** - отображаемое имя пользователя (может свободно изменяться)
+
+#### Правила разработки:
+
+**✅ ПРАВИЛЬНО:**
+```dart
+// Фильтрация "моих" поимок
+final myCatches = catches.where((c) => c.userId == currentUserId);
+
+// Определение принадлежности поимки
+final isMyCatch = catch.userId == currentUserId;
+
+// Запросы к базе данных
+await db.getCatches(userId: currentUserId);
+```
+
+**❌ НЕПРАВИЛЬНО:**
+```dart
+// НЕ ИСПОЛЬЗУЙТЕ userName для логики!
+final myCatches = catches.where((c) => c.userName == currentUserName);
+final isMyCatch = catch.userName == currentUserName;
+await db.getCatches(userName: currentUserName);
+```
+
+#### Генерация userId:
+```dart
+// Основано на характеристиках устройства
+final deviceId = '${deviceInfo.id}-${deviceInfo.model}-${deviceInfo.brand}';
+final hash = sha256.convert(utf8.encode(deviceId)).toString();
+final userId = 'user_${hash.substring(0, 8)}'; // user_a6912f15
 ```
 
 ### 4.2 Формат сообщения в Telegram
