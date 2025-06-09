@@ -40,6 +40,21 @@ flutter pub get
 flutter run
 ```
 
+### Сборка APK для Android
+
+```bash
+flutter build apk --release
+```
+
+APK файл будет создан в `build/app/outputs/flutter-apk/app-release.apk`
+
+### Демо-версия
+
+Для тестирования без базы данных (например, в браузере):
+```bash
+flutter run -d chrome -t lib/main_demo.dart
+```
+
 ## 📂 Структура проекта
 
 ```
