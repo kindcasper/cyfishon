@@ -4,6 +4,7 @@ import '../services/database_service.dart';
 import '../services/gpx_service.dart';
 import '../services/location_service.dart';
 import '../services/log_service.dart';
+import '../services/user_service.dart';
 import '../widgets/bottom_nav.dart';
 
 /// Экран истории поимок
@@ -29,6 +30,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool _isLoading = true;
   bool _showOnlyMine = false;
   final ScrollController _scrollController = ScrollController();
+  String? _currentUserId;
 
   @override
   void initState() {
@@ -49,9 +51,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
 
     try {
-      final catches = await _db.getCatches(
-        userName: _showOnlyMine ? widget.userName : null,
-      );
+      // Получаем userId текущего пользователя
+      final userService = UserService();
+      final userId = await userService.getUserId();
+      _currentUserId = userId;
+      
+      List<CatchRecord> catches;
+      
+      if (_showOnlyMine) {
+        // Фильтруем по userId
+        catches = await _db.getCatches(userId: userId);
+      } else {
+        // Получаем все поимки
+        catches = await _db.getCatches();
+      }
       
       if (mounted) {
         setState(() {
@@ -193,7 +206,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   /// Карточка поимки
   Widget _buildCatchCard(CatchRecord catch_) {
-    final isMyName = catch_.userName == widget.userName;
+    final isMyCatch = _currentUserId != null && catch_.userId == _currentUserId;
     final formattedCoords = {
       'latitude': _location.formatCoordinate(catch_.latitude, true),
       'longitude': _location.formatCoordinate(catch_.longitude, false),
@@ -256,11 +269,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   catch_.userName,
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: isMyName ? FontWeight.bold : FontWeight.normal,
-                    color: isMyName ? Colors.blue : Colors.black87,
+                    fontWeight: isMyCatch ? FontWeight.bold : FontWeight.normal,
+                    color: isMyCatch ? Colors.blue : Colors.black87,
                   ),
                 ),
-                if (isMyName) ...[
+                if (isMyCatch) ...[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

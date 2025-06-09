@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../services/log_service.dart';
+import '../services/user_service.dart';
 import 'home_screen.dart';
 
 /// Экран ввода имени при первом запуске
@@ -33,13 +33,17 @@ class _NameInputScreenState extends State<NameInputScreen> {
 
     try {
       final name = _nameController.text.trim();
+      final userService = UserService();
       
-      // Сохраняем имя в SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(AppConfig.keyUserName, name);
+      // Сохраняем имя через UserService
+      await userService.setUserName(name);
+      
+      // Получаем уникальный ID пользователя
+      final userId = await userService.getUserId();
       
       // Логируем установку имени
       await _log.logUserNameSet(name);
+      await _log.info('Пользователь зарегистрирован с ID: $userId');
       
       if (!mounted) return;
       

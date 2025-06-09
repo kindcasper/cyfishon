@@ -29,7 +29,7 @@ class AppConfig {
   
   // База данных
   static const String databaseName = 'cyfishon.db';
-  static const int databaseVersion = 2;
+  static const int databaseVersion = 3;
   
   // Типы поимок
   static const String catchTypeFishOn = 'fishon';

@@ -39,6 +39,7 @@ class DatabaseService {
       CREATE TABLE catches (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp INTEGER NOT NULL,
+        user_id TEXT NOT NULL,
         user_name TEXT NOT NULL,
         latitude REAL NOT NULL,
         longitude REAL NOT NULL,
@@ -56,6 +57,8 @@ class DatabaseService {
     // Индексы для поимок
     await db.execute(
         'CREATE INDEX idx_catches_timestamp ON catches(timestamp DESC)');
+    await db.execute(
+        'CREATE INDEX idx_catches_user_id ON catches(user_id)');
     await db.execute(
         'CREATE INDEX idx_catches_user_name ON catches(user_name)');
     await db.execute(
@@ -87,6 +90,24 @@ class DatabaseService {
         'ALTER TABLE catches ADD COLUMN is_synced_from_server INTEGER DEFAULT 0'
       );
     }
+    
+    if (oldVersion < 3) {
+      // Добавляем поле user_id
+      await db.execute(
+        'ALTER TABLE catches ADD COLUMN user_id TEXT DEFAULT ""'
+      );
+      
+      // Создаем индекс для user_id
+      await db.execute(
+        'CREATE INDEX idx_catches_user_id ON catches(user_id)'
+      );
+      
+      // Обновляем существующие записи, устанавливая user_id на основе user_name
+      // Это временное решение для миграции
+      await db.execute(
+        'UPDATE catches SET user_id = "legacy_" || user_name WHERE user_id = ""'
+      );
+    }
   }
 
   // ============= Операции с поимками =============
@@ -100,6 +121,7 @@ class DatabaseService {
   /// Получить список поимок
   Future<List<CatchRecord>> getCatches({
     String? userName,
+    String? userId,
     int? limit,
     int? offset,
   }) async {
@@ -108,7 +130,10 @@ class DatabaseService {
     String whereClause = '';
     List<dynamic> whereArgs = [];
     
-    if (userName != null) {
+    if (userId != null) {
+      whereClause = 'user_id = ?';
+      whereArgs = [userId];
+    } else if (userName != null) {
       whereClause = 'user_name = ?';
       whereArgs = [userName];
     }
@@ -123,6 +148,11 @@ class DatabaseService {
     );
     
     return maps.map((map) => CatchRecord.fromMap(map)).toList();
+  }
+
+  /// Получить поимки конкретного пользователя по ID
+  Future<List<CatchRecord>> getCatchesByUserId(String userId, {int? limit}) async {
+    return getCatches(userId: userId, limit: limit);
   }
 
   /// Получить последние поимки для главного экрана

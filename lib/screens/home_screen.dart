@@ -8,6 +8,7 @@ import '../services/location_service.dart';
 import '../services/log_service.dart';
 import '../services/sync_service.dart';
 import '../services/notification_service.dart';
+import '../services/user_service.dart';
 import '../widgets/bottom_nav.dart';
 import 'history_screen.dart';
 import 'map_screen.dart';
@@ -42,10 +43,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _uiUpdateTimer;
   bool _isLoading = false;
   StreamSubscription<bool>? _dataUpdateSubscription;
+  String _currentUserName = '';
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
+    _currentUserName = widget.userName;
     _initializeServices();
     _startLocationTracking();
     _loadRecentCatches();
@@ -108,6 +112,12 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Загрузить последние поимки
   Future<void> _loadRecentCatches() async {
     try {
+      // Получаем userId если еще не получили
+      if (_currentUserId == null) {
+        final userService = UserService();
+        _currentUserId = await userService.getUserId();
+      }
+      
       final catches = await _db.getRecentCatches(limit: AppConfig.maxRecentCatches);
       if (mounted) {
         setState(() {
@@ -139,10 +149,15 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
+      // Получаем userId через UserService
+      final userService = UserService();
+      final userId = await userService.getUserId();
+      
       // Создаем запись о поимке
       final catchRecord = CatchRecord(
         timestamp: DateTime.now(),
-        userName: widget.userName,
+        userId: userId,
+        userName: _currentUserName,
         latitude: position.latitude,
         longitude: position.longitude,
         catchType: catchType,
@@ -150,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Сохраняем в базу данных
       await _db.insertCatch(catchRecord);
-      await _log.logCatchCreated(catchType, widget.userName);
+      await _log.logCatchCreated(catchType, _currentUserName);
 
       // Обновляем список последних поимок
       await _loadRecentCatches();
@@ -251,19 +266,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: Text('Привет, ${widget.userName}!'),
+        title: Text('Привет, $_currentUserName!'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final newName = await Navigator.push<String>(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SettingsScreen(userName: widget.userName),
+                  builder: (context) => SettingsScreen(userName: _currentUserName),
                 ),
-              ).then((_) => _loadRecentCatches());
+              );
+              
+              // Если имя изменилось, обновляем его
+              if (newName != null && newName != _currentUserName) {
+                setState(() {
+                  _currentUserName = newName;
+                });
+              }
+              
+              _loadRecentCatches();
             },
           ),
         ],
@@ -480,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Элемент поимки
   Widget _buildCatchItem(CatchRecord catch_) {
-    final isMyName = catch_.userName == widget.userName;
+    final isMyCatch = _currentUserId != null && catch_.userId == _currentUserId;
     final formattedCoords = _location.formatPosition(
       Position(
         latitude: catch_.latitude,
@@ -538,8 +562,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   catch_.userName,
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: isMyName ? FontWeight.bold : FontWeight.normal,
-                    color: isMyName ? Colors.blue : Colors.black54,
+                    fontWeight: isMyCatch ? FontWeight.bold : FontWeight.normal,
+                    color: isMyCatch ? Colors.blue : Colors.black54,
                   ),
                 ),
               ],

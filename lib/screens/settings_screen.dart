@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../services/log_service.dart';
 import '../services/sync_service.dart';
 import '../services/database_service.dart';
+import '../services/user_service.dart';
 import '../utils/version_utils.dart';
 
 /// Экран настроек
@@ -94,8 +94,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(AppConfig.keyUserName, newName);
+      final userService = UserService();
+      
+      // Сохраняем имя через UserService
+      await userService.setUserName(newName);
       
       await _log.logUserNameSet(newName);
       

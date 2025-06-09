@@ -4,7 +4,8 @@ import '../config/app_config.dart';
 class CatchRecord {
   final int? id;
   final DateTime timestamp;
-  final String userName;
+  final String userId; // Уникальный ID пользователя
+  final String userName; // Имя для отображения (может изменяться)
   final double latitude;
   final double longitude;
   final String catchType; // 'fishon', 'double', 'triple'
@@ -19,6 +20,7 @@ class CatchRecord {
   CatchRecord({
     this.id,
     required this.timestamp,
+    required this.userId,
     required this.userName,
     required this.latitude,
     required this.longitude,
@@ -38,6 +40,7 @@ class CatchRecord {
     return CatchRecord(
       id: map['id'] as int?,
       timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int),
+      userId: map['user_id'] as String,
       userName: map['user_name'] as String,
       latitude: map['latitude'] as double,
       longitude: map['longitude'] as double,
@@ -57,6 +60,7 @@ class CatchRecord {
     return {
       if (id != null) 'id': id,
       'timestamp': timestamp.millisecondsSinceEpoch,
+      'user_id': userId,
       'user_name': userName,
       'latitude': latitude,
       'longitude': longitude,
@@ -75,6 +79,7 @@ class CatchRecord {
   CatchRecord copyWith({
     int? id,
     DateTime? timestamp,
+    String? userId,
     String? userName,
     double? latitude,
     double? longitude,
@@ -90,6 +95,7 @@ class CatchRecord {
     return CatchRecord(
       id: id ?? this.id,
       timestamp: timestamp ?? this.timestamp,
+      userId: userId ?? this.userId,
       userName: userName ?? this.userName,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,

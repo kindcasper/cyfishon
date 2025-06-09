@@ -8,6 +8,7 @@ import 'screens/home_screen.dart';
 import 'services/database_service.dart';
 import 'services/log_service.dart';
 import 'services/server_sync_service.dart';
+import 'services/user_service.dart';
 
 void main() async {
   // Инициализация Flutter
@@ -89,12 +90,17 @@ class _AppStartScreenState extends State<AppStartScreen> {
     // Показываем splash screen на секунду
     await Future.delayed(const Duration(seconds: 1));
     
-    final prefs = await SharedPreferences.getInstance();
-    final userName = prefs.getString(AppConfig.keyUserName);
+    final userService = UserService();
+    
+    // Генерируем/получаем уникальный ID пользователя
+    final userId = await userService.getUserId();
+    
+    // Проверяем, установлено ли имя пользователя
+    final hasUserName = await userService.hasUserName();
     
     if (!mounted) return;
     
-    if (userName == null || userName.isEmpty) {
+    if (!hasUserName) {
       // Первый запуск - показываем экран ввода имени
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -102,10 +108,11 @@ class _AppStartScreenState extends State<AppStartScreen> {
         ),
       );
     } else {
-      // Имя уже есть - переходим на главный экран
+      // Имя уже есть - получаем его и переходим на главный экран
+      final userName = await userService.getUserName();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => HomeScreen(userName: userName),
+          builder: (context) => HomeScreen(userName: userName!),
         ),
       );
     }

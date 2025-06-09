@@ -323,6 +323,7 @@ class ServerSyncService {
       final createdAt = DateTime.parse(createdAtStr.contains('T') ? createdAtStr : createdAtStr.replaceAll(' ', 'T'));
       
       return CatchRecord(
+        userId: serverData['user_id']?.toString() ?? 'server_user',
         userName: serverData['user_name'].toString(),
         catchType: serverData['catch_type'].toString(),
         latitude: double.parse(serverData['latitude'].toString()),
