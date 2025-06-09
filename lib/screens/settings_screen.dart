@@ -4,6 +4,7 @@ import '../config/app_config.dart';
 import '../services/log_service.dart';
 import '../services/sync_service.dart';
 import '../services/database_service.dart';
+import '../utils/version_utils.dart';
 
 /// Экран настроек
 class SettingsScreen extends StatefulWidget {
@@ -294,16 +295,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             const SizedBox(height: 24),
             
-            // Данные
-            _buildSection(
-              title: 'Данные',
-              children: [
-                _buildDataManagement(),
-              ],
-            ),
-            
-            const SizedBox(height: 24),
-            
             // О приложении
             _buildSection(
               title: 'О приложении',
@@ -490,21 +481,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Управление данными
-  Widget _buildDataManagement() {
-    return Card(
-      child: Column(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.delete_forever, color: Colors.red),
-            title: const Text('Очистить все данные'),
-            subtitle: const Text('Удалить все поимки и логи'),
-            onTap: _clearAllData,
-          ),
-        ],
-      ),
-    );
-  }
 
   /// О приложении
   Widget _buildAboutCard() {
@@ -522,12 +498,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Версия 1.0.0',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
+            FutureBuilder<String>(
+              future: VersionUtils.getAppVersion(),
+              builder: (context, snapshot) {
+                final version = snapshot.data ?? '1.0.0';
+                return Text(
+                  'Версия $version',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 12),
             const Text(

@@ -399,53 +399,70 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Карточка с последними поимками
   Widget _buildRecentCatchesCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HistoryScreen(userName: widget.userName),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.history,
-                color: Colors.blue,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Последние поимки',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+        ).then((_) => _loadRecentCatches());
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.history,
+                  color: Colors.blue,
+                  size: 20,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (_recentCatches.isEmpty)
-            const Text(
-              'Пока нет поимок',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey,
-              ),
-            )
-          else
-            ..._recentCatches.map((catch_) => _buildCatchItem(catch_)),
-        ],
+                const SizedBox(width: 8),
+                const Text(
+                  'Последние поимки',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.grey,
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_recentCatches.isEmpty)
+              const Text(
+                'Пока нет поимок',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey,
+                ),
+              )
+            else
+              ..._recentCatches.map((catch_) => _buildCatchItem(catch_)),
+          ],
+        ),
       ),
     );
   }
@@ -453,6 +470,20 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Элемент поимки
   Widget _buildCatchItem(CatchRecord catch_) {
     final isMyName = catch_.userName == widget.userName;
+    final formattedCoords = _location.formatPosition(
+      Position(
+        latitude: catch_.latitude,
+        longitude: catch_.longitude,
+        timestamp: catch_.timestamp,
+        accuracy: 0,
+        altitude: 0,
+        altitudeAccuracy: 0,
+        heading: 0,
+        headingAccuracy: 0,
+        speed: 0,
+        speedAccuracy: 0,
+      ),
+    );
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -502,6 +533,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+          ),
+          // Координаты справа
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                formattedCoords['latitude']!,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
+                formattedCoords['longitude']!,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  color: Colors.black54,
+                ),
+              ),
+            ],
           ),
         ],
       ),
