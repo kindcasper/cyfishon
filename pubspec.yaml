@@ -36,6 +36,11 @@ dependencies:
   open_file: ^3.3.2
   flutter_localizations:
     sdk: flutter
+  
+  # Карта
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+  flutter_compass: ^0.8.1
 
 dev_dependencies:
   flutter_test:
