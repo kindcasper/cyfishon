@@ -7,6 +7,7 @@ import 'screens/name_input_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/database_service.dart';
 import 'services/log_service.dart';
+import 'services/server_sync_service.dart';
 
 void main() async {
   // Инициализация Flutter
@@ -17,6 +18,13 @@ void main() async {
   
   // Логируем запуск приложения
   await LogService().logAppStart();
+  
+  // Запускаем синхронизацию с сервера
+  final serverSync = ServerSyncService();
+  serverSync.startAutoSync();
+  
+  // Выполняем первую синхронизацию сразу при запуске
+  serverSync.syncFromServer();
   
   runApp(const CyFishOnApp());
 }

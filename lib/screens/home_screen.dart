@@ -7,6 +7,7 @@ import '../services/database_service.dart';
 import '../services/location_service.dart';
 import '../services/log_service.dart';
 import '../services/sync_service.dart';
+import '../services/notification_service.dart';
 import '../widgets/bottom_nav.dart';
 import 'history_screen.dart';
 import 'map_screen.dart';
@@ -31,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final LocationService _location = LocationService();
   final LogService _log = LogService();
   final SyncService _sync = SyncService();
+  final NotificationService _notifications = NotificationService();
 
   int _currentIndex = 0;
   List<CatchRecord> _recentCatches = [];
@@ -39,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _locationTimer;
   Timer? _uiUpdateTimer;
   bool _isLoading = false;
+  StreamSubscription<bool>? _dataUpdateSubscription;
 
   @override
   void initState() {
@@ -52,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _locationTimer?.cancel();
     _uiUpdateTimer?.cancel();
+    _dataUpdateSubscription?.cancel();
     _sync.stopSync();
     super.dispose();
   }
@@ -60,6 +64,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initializeServices() async {
     // Запускаем синхронизацию
     await _sync.startSync();
+    
+    // Подписываемся на уведомления об обновлении данных
+    _dataUpdateSubscription = _notifications.dataUpdatedStream.listen((_) {
+      if (mounted) {
+        _loadRecentCatches();
+      }
+    });
     
     // Запускаем таймер обновления UI
     _uiUpdateTimer = Timer.periodic(const Duration(seconds: 1), (_) {

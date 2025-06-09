@@ -1,6 +1,9 @@
 /// Конфигурация приложения CyFishON
 /// Все константы и настройки в одном месте
 class AppConfig {
+  // Версия приложения
+  static const String version = '1.0.6';
+  
   // Telegram API
   static const String telegramBotToken = '8017367144:AAEO257fAdCJ_ghankGbx0WVX2RZklQiwqE';
   static const String telegramGroupId = '-4881811622';
@@ -11,6 +14,8 @@ class AppConfig {
   static const int syncIntervalSeconds = 10;
   static const int defaultRetryMinutes = 5;
   static const int locationUpdateSeconds = 10;
+  static const int serverSyncIntervalSeconds = 30;
+  static const int serverSyncDaysLimit = 7;
   
   // Ограничения
   static const int maxUserNameLength = 13;

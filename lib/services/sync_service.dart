@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import 'database_service.dart';
 import 'telegram_service.dart';
+import 'server_sync_service.dart';
 import 'log_service.dart';
 
 /// Сервис для фоновой синхронизации данных
@@ -14,6 +15,7 @@ class SyncService {
 
   final DatabaseService _db = DatabaseService();
   final TelegramService _telegram = TelegramService();
+  final ServerSyncService _server = ServerSyncService();
   final LogService _log = LogService();
   final Connectivity _connectivity = Connectivity();
 
@@ -124,10 +126,10 @@ class SyncService {
         if (catchRecord.id == null) continue;
         
         try {
-          // Пытаемся отправить
-          final success = await _telegram.sendMessage(catchRecord);
+          // Пытаемся отправить в Telegram
+          final telegramSuccess = await _telegram.sendMessage(catchRecord);
           
-          if (success) {
+          if (telegramSuccess) {
             // Обновляем статус на "отправлено"
             await _db.updateCatchStatus(
               catchRecord.id!,
@@ -146,6 +148,14 @@ class SyncService {
             );
             failed++;
           }
+          
+          // Параллельно отправляем на сервер (независимо от результата Telegram)
+          try {
+            await _server.sendCatchToServer(catchRecord);
+          } catch (e) {
+            await _log.warning('Ошибка отправки на сервер для поимки ${catchRecord.id}: $e');
+          }
+          
         } catch (e) {
           // Логируем ошибку и продолжаем со следующей поимкой
           await _log.error(
@@ -165,6 +175,13 @@ class SyncService {
         if (synced + failed < pendingCatches.length) {
           await Future.delayed(const Duration(milliseconds: 500));
         }
+      }
+      
+      // Дополнительно синхронизируем неотправленные на сервер поимки
+      try {
+        await _server.syncPendingCatches();
+      } catch (e) {
+        await _log.warning('Ошибка дополнительной синхронизации с сервером: $e');
       }
       
       await _log.logSyncComplete(synced, failed);

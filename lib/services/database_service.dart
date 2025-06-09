@@ -182,6 +182,33 @@ class DatabaseService {
     );
   }
 
+  /// Получить поимки, не отправленные на сервер
+  Future<List<CatchRecord>> getCatchesNotSentToServer() async {
+    final db = await database;
+    final maps = await db.query(
+      'catches',
+      where: 'server_status = ? OR server_status = ?',
+      whereArgs: [AppConfig.statusPending, AppConfig.statusFailed],
+      orderBy: 'created_at ASC',
+    );
+    
+    return maps.map((map) => CatchRecord.fromMap(map)).toList();
+  }
+
+  /// Обновить статус отправки на сервер
+  Future<void> updateCatchServerSentStatus(int id, bool sent) async {
+    final db = await database;
+    await db.update(
+      'catches',
+      {
+        'server_status': sent ? AppConfig.statusSent : AppConfig.statusFailed,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   // ============= Операции с логами =============
 
   /// Добавить запись в лог
