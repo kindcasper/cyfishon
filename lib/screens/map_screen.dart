@@ -159,24 +159,29 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void _onCatchMarkerTap(CatchRecord catch_) {
+  void _onCatchMarkerTap(CatchRecord catch_) async {
+    await _logService.info('Клик на маркер поимки: ${catch_.userName} - ${catch_.catchTypeDisplay}');
     setState(() {
       _selectedCatch = catch_;
     });
   }
 
-  void _onTooltipDismiss() {
+  void _onTooltipDismiss() async {
+    await _logService.info('Закрытие хинта поимки');
     setState(() {
       _selectedCatch = null;
     });
   }
 
-  void _centerOnCurrentLocation() {
+  void _centerOnCurrentLocation() async {
     if (_currentPosition != null) {
+      await _logService.info('Центрирование карты на текущем местоположении');
       _mapController.move(
         LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
         16.0,
       );
+    } else {
+      await _logService.warning('Попытка центрирования без доступного местоположения');
     }
   }
 
