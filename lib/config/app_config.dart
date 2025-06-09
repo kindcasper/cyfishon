@@ -29,7 +29,7 @@ class AppConfig {
   
   // База данных
   static const String databaseName = 'cyfishon.db';
-  static const int databaseVersion = 1;
+  static const int databaseVersion = 2;
   
   // Типы поимок
   static const String catchTypeFishOn = 'fishon';
@@ -40,6 +40,7 @@ class AppConfig {
   static const String statusPending = 'pending';
   static const String statusSent = 'sent';
   static const String statusFailed = 'failed';
+  static const String statusSpam = 'spam';
   
   // Уровни логирования
   static const String logLevelInfo = 'info';

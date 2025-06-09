@@ -47,6 +47,7 @@ class DatabaseService {
         server_status TEXT DEFAULT '${AppConfig.statusPending}',
         retry_count INTEGER DEFAULT 0,
         last_error TEXT,
+        is_synced_from_server INTEGER DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -80,7 +81,12 @@ class DatabaseService {
 
   /// Обновление структуры БД при изменении версии
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Здесь будут миграции при обновлении структуры БД
+    if (oldVersion < 2) {
+      // Добавляем поле is_synced_from_server
+      await db.execute(
+        'ALTER TABLE catches ADD COLUMN is_synced_from_server INTEGER DEFAULT 0'
+      );
+    }
   }
 
   // ============= Операции с поимками =============
@@ -131,12 +137,12 @@ class DatabaseService {
     return maps.map((map) => CatchRecord.fromMap(map)).toList();
   }
 
-  /// Получить поимки, ожидающие отправки
+  /// Получить поимки, ожидающие отправки (только собственные)
   Future<List<CatchRecord>> getPendingCatches() async {
     final db = await database;
     final maps = await db.query(
       'catches',
-      where: 'telegram_status = ? OR telegram_status = ?',
+      where: '(telegram_status = ? OR telegram_status = ?) AND is_synced_from_server = 0',
       whereArgs: [AppConfig.statusPending, AppConfig.statusFailed],
       orderBy: 'created_at ASC',
     );
@@ -182,12 +188,12 @@ class DatabaseService {
     );
   }
 
-  /// Получить поимки, не отправленные на сервер
+  /// Получить поимки, не отправленные на сервер (только собственные)
   Future<List<CatchRecord>> getCatchesNotSentToServer() async {
     final db = await database;
     final maps = await db.query(
       'catches',
-      where: 'server_status = ? OR server_status = ?',
+      where: '(server_status = ? OR server_status = ?) AND is_synced_from_server = 0',
       whereArgs: [AppConfig.statusPending, AppConfig.statusFailed],
       orderBy: 'created_at ASC',
     );

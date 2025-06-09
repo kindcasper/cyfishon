@@ -12,6 +12,7 @@ class CatchRecord {
   final String serverStatus; // 'pending', 'sent', 'failed'
   final int retryCount;
   final String? lastError;
+  final bool isSyncedFromServer; // true если поимка получена с сервера
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -26,6 +27,7 @@ class CatchRecord {
     this.serverStatus = AppConfig.statusPending,
     this.retryCount = 0,
     this.lastError,
+    this.isSyncedFromServer = false,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
@@ -44,6 +46,7 @@ class CatchRecord {
       serverStatus: map['server_status'] as String? ?? AppConfig.statusPending,
       retryCount: map['retry_count'] as int? ?? 0,
       lastError: map['last_error'] as String?,
+      isSyncedFromServer: (map['is_synced_from_server'] as int? ?? 0) == 1,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
     );
@@ -62,6 +65,7 @@ class CatchRecord {
       'server_status': serverStatus,
       'retry_count': retryCount,
       'last_error': lastError,
+      'is_synced_from_server': isSyncedFromServer ? 1 : 0,
       'created_at': createdAt.millisecondsSinceEpoch,
       'updated_at': updatedAt.millisecondsSinceEpoch,
     };
@@ -79,6 +83,7 @@ class CatchRecord {
     String? serverStatus,
     int? retryCount,
     String? lastError,
+    bool? isSyncedFromServer,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -93,6 +98,7 @@ class CatchRecord {
       serverStatus: serverStatus ?? this.serverStatus,
       retryCount: retryCount ?? this.retryCount,
       lastError: lastError ?? this.lastError,
+      isSyncedFromServer: isSyncedFromServer ?? this.isSyncedFromServer,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );

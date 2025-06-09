@@ -79,6 +79,19 @@ class ServerSyncService {
             } else {
               await _log.error('Сервер вернул ошибку: ${responseData['error']}');
             }
+          } else if (response.statusCode == 429) {
+            // Обработка ошибки спама
+            final responseData = json.decode(response.body);
+            if (responseData['error'] == 'SPAM_DETECTED') {
+              await _log.warning('Обнаружен спам: ${responseData['message']}');
+              
+              // Помечаем поимку как спам в локальной базе
+              await _updateCatchStatus(catch_.id!, AppConfig.statusSpam, 'SPAM_DETECTED');
+              
+              return false; // Не повторяем попытки для спама
+            } else {
+              await _log.error('HTTP ошибка 429: ${response.body}');
+            }
           } else {
             await _log.error('HTTP ошибка: ${response.statusCode} - ${response.body}');
           }
@@ -185,6 +198,15 @@ class ServerSyncService {
       await _db.updateCatchServerSentStatus(catchId, sent);
     } catch (e) {
       await _log.error('Ошибка обновления статуса отправки на сервер', e);
+    }
+  }
+
+  /// Обновить статус поимки в локальной базе данных
+  Future<void> _updateCatchStatus(int catchId, String status, String? error) async {
+    try {
+      await _db.updateCatchStatus(catchId, status, lastError: error);
+    } catch (e) {
+      await _log.error('Ошибка обновления статуса поимки', e);
     }
   }
 
@@ -306,10 +328,9 @@ class ServerSyncService {
         latitude: double.parse(serverData['latitude'].toString()),
         longitude: double.parse(serverData['longitude'].toString()),
         timestamp: timestamp,
-        telegramStatus: serverData['telegram_sent'] == true || serverData['telegram_sent'] == 1 
-            ? AppConfig.statusSent 
-            : AppConfig.statusPending,
+        telegramStatus: AppConfig.statusSent, // Поимки с сервера уже отправлены
         serverStatus: AppConfig.statusSent, // Поимка уже на сервере
+        isSyncedFromServer: true, // Помечаем как синхронизированную с сервера
         createdAt: createdAt,
       );
     } catch (e) {
