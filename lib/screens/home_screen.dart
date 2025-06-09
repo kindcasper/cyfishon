@@ -51,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _lastDoublePress;
   DateTime? _lastTriplePress;
   static const int _cooldownSeconds = 10;
+  static const int _maxCatchesPerDay = 15;
 
   @override
   void initState() {
@@ -180,8 +181,42 @@ class _HomeScreenState extends State<HomeScreen> {
     return _cooldownSeconds - elapsed;
   }
   
+  /// Проверить дневной лимит поимок
+  Future<bool> _checkDailyLimit() async {
+    if (_currentUserId == null) return false;
+    
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+    
+    final todayCatches = await _db.getCatchesByDateRange(
+      userId: _currentUserId!,
+      startDate: startOfDay,
+      endDate: endOfDay,
+    );
+    
+    return todayCatches.length >= _maxCatchesPerDay;
+  }
+  
+  /// Получить количество поимок сегодня
+  Future<int> _getTodayCatchCount() async {
+    if (_currentUserId == null) return 0;
+    
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+    
+    final todayCatches = await _db.getCatchesByDateRange(
+      userId: _currentUserId!,
+      startDate: startOfDay,
+      endDate: endOfDay,
+    );
+    
+    return todayCatches.length;
+  }
+
   /// Обработать нажатие кнопки поимки
-  void _handleCatchButtonPress(String catchType) {
+  Future<void> _handleCatchButtonPress(String catchType) async {
     // Проверяем кулдаун
     if (_isOnCooldown(catchType)) {
       final remaining = _getRemainingCooldown(catchType);
@@ -190,6 +225,19 @@ class _HomeScreenState extends State<HomeScreen> {
           content: Text('${remaining}sec minimum cooldown'),
           backgroundColor: Colors.orange,
           duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    
+    // Проверяем дневной лимит
+    if (await _checkDailyLimit()) {
+      final todayCount = await _getTodayCatchCount();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Daily limit reached: $todayCount/$_maxCatchesPerDay catches'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
         ),
       );
       return;

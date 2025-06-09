@@ -155,6 +155,27 @@ class DatabaseService {
     return getCatches(userId: userId, limit: limit);
   }
 
+  /// Получить поимки пользователя в диапазоне дат
+  Future<List<CatchRecord>> getCatchesByDateRange({
+    required String userId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await database;
+    final maps = await db.query(
+      'catches',
+      where: 'user_id = ? AND timestamp >= ? AND timestamp < ?',
+      whereArgs: [
+        userId,
+        startDate.millisecondsSinceEpoch,
+        endDate.millisecondsSinceEpoch,
+      ],
+      orderBy: 'timestamp DESC',
+    );
+    
+    return maps.map((map) => CatchRecord.fromMap(map)).toList();
+  }
+
   /// Получить последние поимки для главного экрана
   Future<List<CatchRecord>> getRecentCatches({int limit = 3}) async {
     final db = await database;
