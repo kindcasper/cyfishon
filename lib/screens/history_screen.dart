@@ -6,6 +6,7 @@ import '../services/location_service.dart';
 import '../services/log_service.dart';
 import '../services/user_service.dart';
 import '../widgets/bottom_nav.dart';
+import '../l10n/app_localizations.dart';
 
 /// Экран истории поимок
 class HistoryScreen extends StatefulWidget {
@@ -100,10 +101,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('История поимок'),
+        title: Text(l10n.catchHistory),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         leading: IconButton(
@@ -119,16 +122,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                const Text(
-                  'Фильтр:',
-                  style: TextStyle(
+                Text(
+                  '${l10n.filterBy}:',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(width: 16),
                 ChoiceChip(
-                  label: const Text('Все поимки'),
+                  label: Text(l10n.allCatches),
                   selected: !_showOnlyMine,
                   onSelected: (selected) {
                     if (selected && _showOnlyMine) {
@@ -138,7 +141,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
                 const SizedBox(width: 8),
                 ChoiceChip(
-                  label: const Text('Только мои'),
+                  label: Text(l10n.myCatches),
                   selected: _showOnlyMine,
                   onSelected: (selected) {
                     if (selected && !_showOnlyMine) {
@@ -206,6 +209,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   /// Карточка поимки
   Widget _buildCatchCard(CatchRecord catch_) {
+    final l10n = AppLocalizations.of(context);
     final isMyCatch = _currentUserId != null && catch_.userId == _currentUserId;
     final formattedCoords = {
       'latitude': _location.formatCoordinate(catch_.latitude, true),
@@ -281,9 +285,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       color: Colors.blue.shade100,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      'Моя',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.mine,
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
@@ -313,9 +317,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         color: Colors.grey.shade600,
                       ),
                       const SizedBox(width: 4),
-                      const Text(
-                        'Координаты:',
-                        style: TextStyle(
+                      Text(
+                        '${l10n.coordinates}:',
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                         ),

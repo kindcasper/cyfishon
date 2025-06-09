@@ -1,7 +1,7 @@
 name: cyfishon
 description: "Flutter-приложение для сообщества рыбаков Кипра"
 publish_to: 'none'
-version: 1.0.6+7
+version: 1.0.10+11
 
 environment:
   sdk: ^3.5.4
@@ -38,6 +38,11 @@ dependencies:
   crypto: ^3.0.3
   flutter_localizations:
     sdk: flutter
+  
+  # Авторизация
+  flutter_secure_storage: ^9.0.0
+  jwt_decoder: ^2.0.1
+  email_validator: ^2.1.17
   
   # Карта
   flutter_map: ^6.1.0

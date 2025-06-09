@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// Виджет нижней навигации
 class BottomNav extends StatelessWidget {
@@ -13,6 +14,8 @@ class BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
@@ -21,22 +24,22 @@ class BottomNav extends StatelessWidget {
       unselectedItemColor: Colors.grey,
       selectedFontSize: 12,
       unselectedFontSize: 12,
-      items: const [
+      items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.phishing, size: 28),
-          label: 'Главная',
+          icon: const Icon(Icons.phishing, size: 28),
+          label: l10n.home,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.list_alt, size: 28),
-          label: 'История',
+          icon: const Icon(Icons.list_alt, size: 28),
+          label: l10n.history,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.map, size: 28),
-          label: 'Карта',
+          icon: const Icon(Icons.map, size: 28),
+          label: l10n.map,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.description, size: 28),
-          label: 'Логи',
+          icon: const Icon(Icons.description, size: 28),
+          label: l10n.logs,
         ),
       ],
     );

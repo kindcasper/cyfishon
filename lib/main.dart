@@ -3,12 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/app_config.dart';
 import 'screens/splash_screen.dart';
-import 'screens/name_input_screen.dart';
+import 'screens/auth_welcome_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/database_service.dart';
 import 'services/log_service.dart';
 import 'services/server_sync_service.dart';
-import 'services/user_service.dart';
+import 'services/auth_service.dart';
+import 'services/locale_service.dart';
+import 'l10n/app_localizations_delegate.dart';
 
 void main() async {
   // Инициализация Flutter
@@ -16,6 +18,9 @@ void main() async {
   
   // Инициализация базы данных
   await DatabaseService().database;
+  
+  // Инициализация локализации
+  await LocaleService().initialize();
   
   // Логируем запуск приложения
   await LogService().logAppStart();
@@ -35,38 +40,41 @@ class CyFishOnApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'CyFishON',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        // Большие кнопки для использования на море
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 60),
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+    return ListenableBuilder(
+      listenable: LocaleService(),
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'CyFishON',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.blue,
+              brightness: Brightness.light,
+            ),
+            useMaterial3: true,
+            // Большие кнопки для использования на море
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 60),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      // Поддержка русского языка
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('ru', 'RU'),
-        Locale('en', 'US'),
-      ],
-      locale: const Locale('ru', 'RU'),
-      home: const AppStartScreen(),
+          // Поддержка локализации
+          localizationsDelegates: const [
+            AppLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: LocaleService.supportedLocales,
+          locale: LocaleService().currentLocale,
+          home: const AppStartScreen(),
+        );
+      },
     );
   }
 }
@@ -90,29 +98,24 @@ class _AppStartScreenState extends State<AppStartScreen> {
     // Показываем splash screen на секунду
     await Future.delayed(const Duration(seconds: 1));
     
-    final userService = UserService();
-    
-    // Генерируем/получаем уникальный ID пользователя
-    final userId = await userService.getUserId();
-    
-    // Проверяем, установлено ли имя пользователя
-    final hasUserName = await userService.hasUserName();
-    
     if (!mounted) return;
     
-    if (!hasUserName) {
-      // Первый запуск - показываем экран ввода имени
+    // Проверяем авторизацию
+    final isLoggedIn = await AuthService.autoLogin();
+    
+    if (isLoggedIn) {
+      // Пользователь авторизован - переходим на главный экран
+      final user = AuthService.currentUser;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const NameInputScreen(),
+          builder: (context) => HomeScreen(userName: user!.name),
         ),
       );
     } else {
-      // Имя уже есть - получаем его и переходим на главный экран
-      final userName = await userService.getUserName();
+      // Пользователь не авторизован - показываем экран авторизации
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => HomeScreen(userName: userName!),
+          builder: (context) => const AuthWelcomeScreen(),
         ),
       );
     }

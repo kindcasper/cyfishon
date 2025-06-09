@@ -2,7 +2,10 @@
 /// Все константы и настройки в одном месте
 class AppConfig {
   // Версия приложения
-  static const String version = '1.0.6';
+  static const String version = '1.0.9';
+  
+  // Server API
+  static const String serverUrl = 'https://fishingcy.com/cyfishon-server';
   
   // Telegram API
   static const String telegramBotToken = '8017367144:AAEO257fAdCJ_ghankGbx0WVX2RZklQiwqE';

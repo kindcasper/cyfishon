@@ -10,6 +10,7 @@ import '../services/sync_service.dart';
 import '../services/notification_service.dart';
 import '../services/user_service.dart';
 import '../widgets/bottom_nav.dart';
+import '../l10n/app_localizations.dart';
 import 'history_screen.dart';
 import 'map_screen.dart';
 import 'logs_screen.dart';
@@ -399,10 +400,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: Text('Привет, $_currentUserName!'),
+        title: Text('${l10n.welcome}, $_currentUserName!'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
@@ -480,6 +483,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Карточка с текущими координатами
   Widget _buildLocationCard() {
+    final l10n = AppLocalizations.of(context);
     final formattedCoords = _currentPosition != null
         ? _location.formatPosition(_currentPosition!)
         : null;
@@ -510,9 +514,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Текущие координаты',
-                  style: TextStyle(
+                Text(
+                  l10n.myLocation,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -537,9 +541,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ] else
-                  const Text(
-                    'Получение координат...',
-                    style: TextStyle(
+                  Text(
+                    l10n.gettingLocation,
+                    style: const TextStyle(
                       fontSize: 13,
                       color: Colors.grey,
                     ),
@@ -570,6 +574,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Карточка с последними поимками
   Widget _buildRecentCatchesCard() {
+    final l10n = AppLocalizations.of(context);
+    
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -605,9 +611,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  'Последние поимки',
-                  style: TextStyle(
+                Text(
+                  l10n.recentCatches,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -623,9 +629,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             if (_recentCatches.isEmpty)
-              const Text(
-                'Пока нет поимок',
-                style: TextStyle(
+              Text(
+                l10n.noCatches,
+                style: const TextStyle(
                   fontSize: 13,
                   color: Colors.grey,
                 ),

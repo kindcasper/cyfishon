@@ -3,8 +3,12 @@ import '../config/app_config.dart';
 import '../services/log_service.dart';
 import '../services/sync_service.dart';
 import '../services/database_service.dart';
+import '../services/auth_service.dart';
 import '../services/user_service.dart';
+import '../services/locale_service.dart';
 import '../utils/version_utils.dart';
+import '../screens/auth_welcome_screen.dart';
+import '../l10n/app_localizations.dart';
 
 /// Экран настроек
 class SettingsScreen extends StatefulWidget {
@@ -250,10 +254,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('Настройки'),
+        title: Text(l10n.settings),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         leading: IconButton(
@@ -268,9 +274,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             // Настройки пользователя
             _buildSection(
-              title: 'Пользователь',
+              title: l10n.user,
               children: [
                 _buildNameSetting(),
+                const SizedBox(height: 12),
+                _buildLanguageSetting(),
               ],
             ),
             
@@ -278,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             // Настройки синхронизации
             _buildSection(
-              title: 'Синхронизация',
+              title: l10n.sync,
               children: [
                 _buildRetryIntervalSetting(),
                 _buildSyncStatusCard(),
@@ -289,7 +297,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             // Статистика
             _buildSection(
-              title: 'Статистика',
+              title: l10n.statistics,
               children: [
                 _buildStatisticsCard(),
               ],
@@ -299,9 +307,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             // О приложении
             _buildSection(
-              title: 'О приложении',
+              title: l10n.about,
               children: [
                 _buildAboutCard(),
+              ],
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Аккаунт
+            _buildSection(
+              title: 'Аккаунт',
+              children: [
+                _buildSignOutCard(),
               ],
             ),
           ],
@@ -334,15 +352,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Настройка имени
   Widget _buildNameSetting() {
+    final l10n = AppLocalizations.of(context);
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Имя пользователя',
-              style: TextStyle(
+            Text(
+              l10n.userName,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -351,9 +371,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextFormField(
               controller: _nameController,
               maxLength: AppConfig.maxUserNameLength,
-              decoration: const InputDecoration(
-                labelText: 'Ваше имя',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.enterName,
+                border: const OutlineInputBorder(),
                 counterText: '',
               ),
             ),
@@ -368,7 +388,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Сохранить'),
+                    : Text(l10n.save),
               ),
             ),
           ],
@@ -392,6 +412,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Карточка статуса синхронизации
   Widget _buildSyncStatusCard() {
+    final l10n = AppLocalizations.of(context);
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -408,7 +430,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _sync.isOnline ? 'Онлайн' : 'Офлайн',
+                    _sync.isOnline ? l10n.online : 'Офлайн',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -416,7 +438,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Text(
                     _sync.isOnline
-                        ? 'Синхронизация активна'
+                        ? l10n.syncActive
                         : 'Нет подключения к интернету',
                     style: TextStyle(
                       fontSize: 14,
@@ -434,6 +456,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Карточка статистики
   Widget _buildStatisticsCard() {
+    final l10n = AppLocalizations.of(context);
+    
     return FutureBuilder<Map<String, dynamic>>(
       future: _getStatistics(),
       builder: (context, snapshot) {
@@ -447,9 +471,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem('Всего', stats['total'], Colors.blue),
-                    _buildStatItem('Отправлено', stats['sent'], Colors.green),
-                    _buildStatItem('Ожидает', stats['pending'], Colors.orange),
+                    _buildStatItem(l10n.total, stats['total'], Colors.blue),
+                    _buildStatItem(l10n.sent, stats['sent'], Colors.green),
+                    _buildStatItem(l10n.pending, stats['pending'], Colors.orange),
                   ],
                 ),
               ],
@@ -531,5 +555,195 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  /// Карточка выхода из аккаунта
+  Widget _buildSignOutCard() {
+    final l10n = AppLocalizations.of(context);
+    
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.person,
+                  size: 32,
+                  color: Colors.blue,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${l10n.authorizedAs}:',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        widget.userName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (AuthService.currentUser != null)
+                        Text(
+                          AuthService.currentUser!.email,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _signOut,
+                icon: const Icon(Icons.logout, color: Colors.red),
+                label: Text(
+                  l10n.logout,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Настройка языка
+  Widget _buildLanguageSetting() {
+    return ListenableBuilder(
+      listenable: LocaleService(),
+      builder: (context, child) {
+        final localeService = LocaleService();
+        final currentLanguage = localeService.currentLocale.languageCode;
+        final languageName = localeService.getLanguageName(currentLanguage);
+        
+        return Card(
+          child: ListTile(
+            leading: const Icon(Icons.language),
+            title: const Text('Язык / Language'),
+            subtitle: Text(languageName),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _showLanguageDialog,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Показать диалог выбора языка
+  Future<void> _showLanguageDialog() async {
+    final localeService = LocaleService();
+    final currentLocale = localeService.currentLocale;
+    
+    final selected = await showDialog<Locale>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Выберите язык / Choose Language'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: LocaleService.supportedLocales.map((locale) {
+            final languageName = localeService.getLanguageName(locale.languageCode);
+            return RadioListTile<Locale>(
+              title: Text(languageName),
+              value: locale,
+              groupValue: currentLocale,
+              onChanged: (value) => Navigator.pop(context, value),
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена / Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (selected != null && selected != currentLocale) {
+      await localeService.setLocale(selected);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Язык изменен / Language changed: ${localeService.getLanguageName(selected.languageCode)}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Выход из аккаунта
+  Future<void> _signOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Выйти из аккаунта'),
+        content: const Text(
+          'Вы уверены, что хотите выйти из аккаунта? Все несохраненные данные будут потеряны.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Выйти'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        // Выполняем выход
+        await AuthService.logout();
+        
+        if (mounted) {
+          // Переходим на экран авторизации
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AuthWelcomeScreen(),
+            ),
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        await _log.error('Ошибка при выходе из аккаунта', e);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Ошибка: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 }

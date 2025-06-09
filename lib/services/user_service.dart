@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'log_service.dart';
+import 'auth_service.dart';
 
 /// Сервис для работы с пользователем и уникальным ID
 class UserService {
@@ -23,12 +24,22 @@ class UserService {
 
   /// Получить уникальный ID пользователя
   Future<String> getUserId() async {
-    if (_userId != null) return _userId!;
-
     try {
+      // Проверяем, авторизован ли пользователь
+      final currentUser = AuthService.currentUser;
+      if (currentUser != null) {
+        // Используем ID авторизованного пользователя
+        _userId = 'auth_${currentUser.id}';
+        await _log.info('Используется ID авторизованного пользователя: $_userId');
+        return _userId!;
+      }
+      
+      // Если пользователь не авторизован, используем device-based ID (для совместимости)
+      if (_userId != null) return _userId!;
+
       final prefs = await SharedPreferences.getInstance();
       
-      // Проверяем, есть ли уже сохраненный ID
+      // Проверяем, есть ли уже сохраненный device-based ID
       _userId = prefs.getString(_keyUserId);
       
       if (_userId == null) {
@@ -38,9 +49,9 @@ class UserService {
         
         // Сохраняем ID
         await prefs.setString(_keyUserId, _userId!);
-        await _log.info('Сгенерирован новый ID пользователя: $_userId');
+        await _log.info('Сгенерирован новый device-based ID пользователя: $_userId');
       } else {
-        await _log.info('Загружен существующий ID пользователя: $_userId');
+        await _log.info('Загружен существующий device-based ID пользователя: $_userId');
       }
       
       return _userId!;
@@ -178,6 +189,12 @@ class UserService {
         'error': e.toString(),
       };
     }
+  }
+
+  /// Сбросить кэшированный user_id (вызывается при смене авторизации)
+  void resetUserId() {
+    _userId = null;
+    _log.info('Кэшированный user_id сброшен');
   }
 
   /// Очистить данные пользователя (для отладки)
