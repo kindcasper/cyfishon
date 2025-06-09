@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       // Сохраняем в базу данных
-      final id = await _db.insertCatch(catchRecord);
+      await _db.insertCatch(catchRecord);
       await _log.logCatchCreated(catchType, widget.userName);
 
       // Обновляем список последних поимок

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
-import '../models/catch_record.dart';
 import 'database_service.dart';
 import 'telegram_service.dart';
 import 'log_service.dart';

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../config/app_config.dart';
 import '../models/catch_record.dart';
 import '../services/database_service.dart';
 import '../services/location_service.dart';
