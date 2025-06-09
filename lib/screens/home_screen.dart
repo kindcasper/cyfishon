@@ -220,6 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // Проверяем кулдаун
     if (_isOnCooldown(catchType)) {
       final remaining = _getRemainingCooldown(catchType);
+      // Очищаем предыдущие сообщения
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${remaining}sec minimum cooldown'),
@@ -233,6 +235,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // Проверяем дневной лимит
     if (await _checkDailyLimit()) {
       final todayCount = await _getTodayCatchCount();
+      // Очищаем предыдущие сообщения
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Daily limit reached: $todayCount/$_maxCatchesPerDay catches'),
