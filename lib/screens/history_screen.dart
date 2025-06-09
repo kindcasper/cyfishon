@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/catch_record.dart';
 import '../services/database_service.dart';
+import '../services/gpx_service.dart';
 import '../services/location_service.dart';
 import '../services/log_service.dart';
 import '../widgets/bottom_nav.dart';
@@ -22,6 +23,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final DatabaseService _db = DatabaseService();
   final LocationService _location = LocationService();
   final LogService _log = LogService();
+  final GpxService _gpx = GpxService();
 
   List<CatchRecord> _catches = [];
   bool _isLoading = true;
@@ -350,15 +352,40 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ],
             
-            // Дата и время
+            // Дата и время и кнопка GPX
             const SizedBox(height: 8),
-            Text(
-              '${catch_.timestamp.day.toString().padLeft(2, '0')}.${catch_.timestamp.month.toString().padLeft(2, '0')}.${catch_.timestamp.year} '
-              '${catch_.timestamp.hour.toString().padLeft(2, '0')}:${catch_.timestamp.minute.toString().padLeft(2, '0')}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade500,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${catch_.timestamp.day.toString().padLeft(2, '0')}.${catch_.timestamp.month.toString().padLeft(2, '0')}.${catch_.timestamp.year} '
+                    '${catch_.timestamp.hour.toString().padLeft(2, '0')}:${catch_.timestamp.minute.toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ),
+                // Кнопка GPX
+                ElevatedButton.icon(
+                  onPressed: () => _gpx.exportCatchToGpx(context, catch_),
+                  icon: const Icon(
+                    Icons.download,
+                    size: 16,
+                  ),
+                  label: const Text(
+                    'GPX',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
