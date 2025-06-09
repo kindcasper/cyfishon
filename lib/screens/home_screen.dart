@@ -122,7 +122,10 @@ class _HomeScreenState extends State<HomeScreen> {
       
       final position = await _location.getCurrentLocation();
       if (position == null) {
-        throw Exception('Не удалось получить координаты');
+        // Проверяем статус разрешений для более детальной ошибки
+        final permissionStatus = await _location.getPermissionStatus();
+        await _showLocationPermissionDialog(permissionStatus);
+        return;
       }
 
       // Создаем запись о поимке
@@ -499,6 +502,61 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Показать диалог с проблемой разрешений
+  Future<void> _showLocationPermissionDialog(String permissionStatus) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Нужно разрешение на геолокацию'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Статус: $permissionStatus'),
+            const SizedBox(height: 16),
+            const Text(
+              'Для создания поимки необходимо разрешение на использование геолокации.',
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Пожалуйста, предоставьте разрешение в настройках.',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _location.openAppSettings();
+            },
+            child: const Text('Открыть настройки'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Повторная попытка запроса разрешения
+              final hasPermission = await _location.checkPermissions();
+              if (hasPermission) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Разрешение получено!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+                _updateLocation(); // Обновляем координаты
+              }
+            },
+            child: const Text('Повторить'),
           ),
         ],
       ),
