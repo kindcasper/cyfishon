@@ -3,6 +3,7 @@ import '../config/app_config.dart';
 import '../models/log_entry.dart';
 import '../services/log_service.dart';
 import '../widgets/bottom_nav.dart';
+import '../l10n/app_localizations.dart';
 
 /// Экран логов
 class LogsScreen extends StatefulWidget {
@@ -58,7 +59,7 @@ class _LogsScreenState extends State<LogsScreen> {
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка загрузки логов: ${e.toString()}'),
+            content: Text('${AppLocalizations.of(context).loadingLogsError}: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -71,16 +72,16 @@ class _LogsScreenState extends State<LogsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Очистить логи'),
-        content: const Text('Вы уверены, что хотите удалить все логи?'),
+        title: Text(AppLocalizations.of(context).clearLogsTitle),
+        content: Text(AppLocalizations.of(context).clearLogsConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Удалить'),
+            child: Text(AppLocalizations.of(context).delete),
           ),
         ],
       ),
@@ -93,8 +94,8 @@ class _LogsScreenState extends State<LogsScreen> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Логи очищены'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).logsCleared),
               backgroundColor: Colors.green,
             ),
           );
@@ -103,7 +104,7 @@ class _LogsScreenState extends State<LogsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Ошибка очистки: ${e.toString()}'),
+              content: Text('${AppLocalizations.of(context).clearingError}: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -125,7 +126,7 @@ class _LogsScreenState extends State<LogsScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('Логи'),
+        title: Text(AppLocalizations.of(context).logs),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         leading: IconButton(
@@ -141,13 +142,13 @@ class _LogsScreenState extends State<LogsScreen> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'clear',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Очистить все'),
+                    const Icon(Icons.delete, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context).clearAllLogs),
                   ],
                 ),
               ),
@@ -164,9 +165,9 @@ class _LogsScreenState extends State<LogsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Фильтр по уровню:',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).filterByLevel,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -176,28 +177,28 @@ class _LogsScreenState extends State<LogsScreen> {
                   spacing: 8,
                   children: [
                     ChoiceChip(
-                      label: const Text('Все'),
+                      label: Text(AppLocalizations.of(context).all),
                       selected: _selectedLevel == null,
                       onSelected: (selected) {
                         if (selected) _changeFilter(null);
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('Инфо'),
+                      label: Text(AppLocalizations.of(context).infoLogs),
                       selected: _selectedLevel == AppConfig.logLevelInfo,
                       onSelected: (selected) {
                         if (selected) _changeFilter(AppConfig.logLevelInfo);
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('Предупреждения'),
+                      label: Text(AppLocalizations.of(context).warningLogs),
                       selected: _selectedLevel == AppConfig.logLevelWarning,
                       onSelected: (selected) {
                         if (selected) _changeFilter(AppConfig.logLevelWarning);
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('Ошибки'),
+                      label: Text(AppLocalizations.of(context).errorLogs),
                       selected: _selectedLevel == AppConfig.logLevelError,
                       onSelected: (selected) {
                         if (selected) _changeFilter(AppConfig.logLevelError);
@@ -227,7 +228,7 @@ class _LogsScreenState extends State<LogsScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Нет логов',
+                              AppLocalizations.of(context).noLogs,
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.grey.shade600,

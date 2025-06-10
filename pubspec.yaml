@@ -1,7 +1,7 @@
 name: cyfishon
 description: "Flutter-приложение для сообщества рыбаков Кипра"
 publish_to: 'none'
-version: 1.0.10+11
+version: 1.0.13+14
 
 environment:
   sdk: ^3.5.4

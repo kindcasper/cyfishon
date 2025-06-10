@@ -269,7 +269,7 @@ class MapInfoPanel extends StatelessWidget {
                 const Icon(Icons.phishing, size: 16, color: Colors.blue),
                 const SizedBox(width: 4),
                 Text(
-                  '$totalCatches поимок',
+                  '$totalCatches ${_getCatchesText(totalCatches)}',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -293,6 +293,11 @@ class MapInfoPanel extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getCatchesText(int count) {
+    // Используем локализацию для слова "поимок"
+    return 'поимок'; // Временно, пока не добавим контекст локализации
   }
 
   String _getDirectionText(double heading) {

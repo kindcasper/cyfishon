@@ -10,6 +10,7 @@ import '../services/compass_service.dart';
 import '../services/database_service.dart';
 import '../services/log_service.dart';
 import '../models/catch_record.dart';
+import '../l10n/app_localizations.dart';
 
 /// Экран карты с отображением всех поимок
 class MapScreen extends StatefulWidget {
@@ -187,10 +188,12 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('Карта поимок'),
+        title: Text(l10n.catchMap),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         leading: IconButton(

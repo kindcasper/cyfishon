@@ -64,9 +64,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final newName = _nameController.text.trim();
     
     if (newName.isEmpty) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Имя не может быть пустым'),
+        SnackBar(
+          content: Text(l10n.nameCannotBeEmpty),
           backgroundColor: Colors.red,
         ),
       );
@@ -74,9 +75,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     if (newName.length > AppConfig.maxUserNameLength) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Имя не может быть длиннее ${AppConfig.maxUserNameLength} символов'),
+          content: Text('${l10n.nameCannotBeLonger} ${AppConfig.maxUserNameLength} ${l10n.symbols}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -84,9 +86,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     if (newName == widget.userName) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Имя не изменилось'),
+        SnackBar(
+          content: Text(l10n.nameNotChanged),
           backgroundColor: Colors.orange,
         ),
       );
@@ -106,9 +109,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _log.logUserNameSet(newName);
       
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Имя сохранено'),
+          SnackBar(
+            content: Text(l10n.nameSaved),
             backgroundColor: Colors.green,
           ),
         );
@@ -144,9 +148,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _retryInterval = minutes;
       });
       
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Интервал сохранен'),
+        SnackBar(
+          content: Text(l10n.intervalSaved),
           backgroundColor: Colors.green,
         ),
       );
@@ -164,17 +169,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Показать диалог выбора интервала
   Future<void> _showRetryIntervalDialog() async {
+    final l10n = AppLocalizations.of(context);
     final intervals = [1, 2, 5, 10, 15, 30, 60];
     
     final selected = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Интервал повторных попыток'),
+        title: Text(l10n.retryInterval),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: intervals.map((interval) {
+            String minuteText;
+            if (interval == 1) {
+              minuteText = l10n.minute;
+            } else if (interval < 5) {
+              minuteText = l10n.minutes2to4;
+            } else {
+              minuteText = l10n.minutes5plus;
+            }
+            
             return RadioListTile<int>(
-              title: Text('$interval ${interval == 1 ? 'минута' : interval < 5 ? 'минуты' : 'минут'}'),
+              title: Text('$interval $minuteText'),
               value: interval,
               groupValue: _retryInterval,
               onChanged: (value) => Navigator.pop(context, value),
@@ -184,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
+            child: Text(l10n.cancel),
           ),
         ],
       ),
@@ -195,52 +210,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  /// Очистить все данные
-  Future<void> _clearAllData() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Очистить все данные'),
-        content: const Text(
-          'Это удалит все поимки и логи. Действие нельзя отменить. Продолжить?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Удалить'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        await _log.clearAllLogs();
-        // Здесь можно добавить очистку поимок если нужно
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Данные очищены'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } catch (e) {
-        await _log.error('Ошибка очистки данных', e);
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
 
   /// Получить статистику
   Future<Map<String, dynamic>> _getStatistics() async {
@@ -317,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             // Аккаунт
             _buildSection(
-              title: 'Аккаунт',
+              title: l10n.account,
               children: [
                 _buildSignOutCard(),
               ],
@@ -399,11 +368,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Настройка интервала повторных попыток
   Widget _buildRetryIntervalSetting() {
+    final l10n = AppLocalizations.of(context);
+    
     return Card(
       child: ListTile(
         leading: const Icon(Icons.schedule),
-        title: const Text('Интервал повторных попыток'),
-        subtitle: Text('$_retryInterval ${_retryInterval == 1 ? 'минута' : _retryInterval < 5 ? 'минуты' : 'минут'}'),
+        title: Text(l10n.retryInterval),
+        subtitle: Text('$_retryInterval ${l10n.minutesShort}'),
         trailing: const Icon(Icons.chevron_right),
         onTap: _showRetryIntervalDialog,
       ),
@@ -430,7 +401,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _sync.isOnline ? l10n.online : 'Офлайн',
+                    _sync.isOnline ? l10n.online : l10n.offline,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -439,7 +410,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Text(
                     _sync.isOnline
                         ? l10n.syncActive
-                        : 'Нет подключения к интернету',
+                        : l10n.noInternetConnection,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade600,
@@ -510,6 +481,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// О приложении
   Widget _buildAboutCard() {
+    final l10n = AppLocalizations.of(context);
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -529,7 +502,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               builder: (context, snapshot) {
                 final version = snapshot.data ?? '1.0.0';
                 return Text(
-                  'Версия $version',
+                  '${l10n.version} $version',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.grey,
@@ -538,14 +511,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Приложение для сообщества рыбаков Кипра. Позволяет быстро делиться информацией о поимках тунца.',
-              style: TextStyle(fontSize: 14),
+            Text(
+              l10n.appDescription,
+              style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Разработано с учетом работы в море при отсутствии стабильного интернета.',
-              style: TextStyle(
+            Text(
+              l10n.developedForSea,
+              style: const TextStyle(
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 color: Colors.grey,
@@ -630,6 +603,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Настройка языка
   Widget _buildLanguageSetting() {
+    final l10n = AppLocalizations.of(context);
+    
     return ListenableBuilder(
       listenable: LocaleService(),
       builder: (context, child) {
@@ -640,7 +615,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Card(
           child: ListTile(
             leading: const Icon(Icons.language),
-            title: const Text('Язык / Language'),
+            title: Text(l10n.languageLabel),
             subtitle: Text(languageName),
             trailing: const Icon(Icons.chevron_right),
             onTap: _showLanguageDialog,
@@ -652,13 +627,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Показать диалог выбора языка
   Future<void> _showLanguageDialog() async {
+    final l10n = AppLocalizations.of(context);
     final localeService = LocaleService();
     final currentLocale = localeService.currentLocale;
     
     final selected = await showDialog<Locale>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Выберите язык / Choose Language'),
+        title: Text(l10n.chooseLanguage),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: LocaleService.supportedLocales.map((locale) {
@@ -674,7 +650,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена / Cancel'),
+            child: Text(l10n.cancelSlashCancel),
           ),
         ],
       ),
@@ -686,7 +662,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Язык изменен / Language changed: ${localeService.getLanguageName(selected.languageCode)}'),
+            content: Text(l10n.languageChanged),
             backgroundColor: Colors.green,
           ),
         );
@@ -696,22 +672,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Выход из аккаунта
   Future<void> _signOut() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Выйти из аккаунта'),
-        content: const Text(
-          'Вы уверены, что хотите выйти из аккаунта? Все несохраненные данные будут потеряны.',
-        ),
+        title: Text(l10n.signOutTitle),
+        content: Text(l10n.signOutConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Выйти'),
+            child: Text(l10n.signOut),
           ),
         ],
       ),
@@ -738,7 +713,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Ошибка: ${e.toString()}'),
+              content: Text('${l10n.error}: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );

@@ -218,6 +218,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Обработать нажатие кнопки поимки
   Future<void> _handleCatchButtonPress(String catchType) async {
+    final l10n = AppLocalizations.of(context);
+    
     // Проверяем кулдаун
     if (_isOnCooldown(catchType)) {
       final remaining = _getRemainingCooldown(catchType);
@@ -225,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${remaining}sec minimum cooldown'),
+          content: Text('$remaining${l10n.cooldownMessage}'),
           backgroundColor: Colors.orange,
           duration: const Duration(seconds: 2),
         ),
@@ -240,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Daily limit reached: $todayCount/$_maxCatchesPerDay catches'),
+          content: Text('${l10n.dailyLimitReached}: $todayCount/$_maxCatchesPerDay ${l10n.catches}'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 3),
         ),
@@ -308,9 +310,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await _loadRecentCatches();
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Поимка сохранена! ${catchRecord.catchTypeDisplay}'),
+            content: Text('${l10n.catchSaved} ${catchRecord.catchTypeDisplay}'),
             backgroundColor: Colors.green,
           ),
         );
@@ -740,36 +743,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Показать диалог с проблемой разрешений
   Future<void> _showLocationPermissionDialog(String permissionStatus) async {
+    final l10n = AppLocalizations.of(context);
+    
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Нужно разрешение на геолокацию'),
+        title: Text(l10n.locationPermissionNeeded),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Статус: $permissionStatus'),
+            Text('${l10n.status}: $permissionStatus'),
             const SizedBox(height: 16),
-            const Text(
-              'Для создания поимки необходимо разрешение на использование геолокации.',
-            ),
+            Text(l10n.locationPermissionDescription),
             const SizedBox(height: 8),
-            const Text(
-              'Пожалуйста, предоставьте разрешение в настройках.',
-            ),
+            Text(l10n.pleaseGrantPermission),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await _location.openAppSettings();
             },
-            child: const Text('Открыть настройки'),
+            child: Text(l10n.openSettings),
           ),
           TextButton(
             onPressed: () async {
@@ -778,15 +779,15 @@ class _HomeScreenState extends State<HomeScreen> {
               final hasPermission = await _location.checkPermissions();
               if (hasPermission) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Разрешение получено!'),
+                  SnackBar(
+                    content: Text(l10n.permissionGranted),
                     backgroundColor: Colors.green,
                   ),
                 );
                 _updateLocation(); // Обновляем координаты
               }
             },
-            child: const Text('Повторить'),
+            child: Text(l10n.retry),
           ),
         ],
       ),

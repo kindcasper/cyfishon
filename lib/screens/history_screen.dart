@@ -358,7 +358,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(width: 4),
                   Text(
                     catch_.isPending
-                        ? 'Ожидает отправки'
+                        ? l10n.pendingSend
                         : 'Ошибка отправки (попытка ${catch_.retryCount})',
                     style: TextStyle(
                       fontSize: 12,

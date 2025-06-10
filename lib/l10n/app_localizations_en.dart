@@ -240,8 +240,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get clearDataConfirm => 'Are you sure you want to clear all data?';
   @override
-  String get dataCleared => 'Data cleared';
-  @override
   String get exportData => 'Export Data';
   @override
   String get importData => 'Import Data';
@@ -467,4 +465,150 @@ class AppLocalizationsEn extends AppLocalizations {
   String get southeast => 'SE';
   @override
   String get southwest => 'SW';
+
+  // Additional strings for logs
+  @override
+  String get clearAllLogs => 'Clear All';
+  
+  @override
+  String get clearLogsTitle => 'Clear Logs';
+  
+  @override
+  String get clearLogsConfirm => 'Are you sure you want to delete all logs?';
+  
+  @override
+  String get filterByLevel => 'Filter by level:';
+  
+  @override
+  String get all => 'All';
+  
+  @override
+  String get infoLogs => 'Info';
+  
+  @override
+  String get warningLogs => 'Warnings';
+  
+  @override
+  String get errorLogs => 'Errors';
+  
+  @override
+  String get loadingLogsError => 'Error loading logs';
+  
+  @override
+  String get clearingError => 'Clearing error';
+
+  // Additional strings for full localization
+  @override
+  String get retryInterval => 'Retry Interval';
+  
+  @override
+  String get minutesShort => 'min';
+  
+  @override
+  String get account => 'Account';
+  
+  @override
+  String get pendingSend => 'Pending Send';
+  
+  @override
+  String get catchMap => 'Catch Map';
+  
+  @override
+  String get catches => 'catches';
+
+  @override
+  String get cooldownMessage => 'sec minimum cooldown';
+
+  @override
+  String get dailyLimitReached => 'Daily limit reached';
+
+  @override
+  String get catchSaved => 'Catch saved!';
+
+  @override
+  String get locationPermissionNeeded => 'Location permission needed';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get locationPermissionDescription => 'Location permission is required to create a catch.';
+
+  @override
+  String get pleaseGrantPermission => 'Please grant permission in settings.';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get permissionGranted => 'Permission granted!';
+
+  @override
+  String get nameCannotBeEmpty => 'Name cannot be empty';
+
+  @override
+  String get nameCannotBeLonger => 'Name cannot be longer than';
+
+  @override
+  String get symbols => 'characters';
+
+  @override
+  String get nameNotChanged => 'Name not changed';
+
+  @override
+  String get nameSaved => 'Name saved';
+
+  @override
+  String get intervalSaved => 'Interval saved';
+
+  @override
+  String get minute => 'minute';
+
+  @override
+  String get minutes2to4 => 'minutes';
+
+  @override
+  String get minutes5plus => 'minutes';
+
+  @override
+  String get clearAllData => 'Clear all data';
+
+  @override
+  String get clearAllDataConfirmation => 'This will delete all catches and logs. This action cannot be undone. Continue?';
+
+  @override
+  String get dataCleared => 'Data cleared';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get noInternetConnection => 'No internet connection';
+
+  @override
+  String get appDescription => 'Application for the Cyprus fishing community. Allows quick sharing of tuna catch information.';
+
+  @override
+  String get developedForSea => 'Developed for use at sea without stable internet connection.';
+
+  @override
+  String get languageLabel => 'Language / Язык';
+
+  @override
+  String get chooseLanguage => 'Choose Language / Выберите язык';
+
+  @override
+  String get cancelSlashCancel => 'Cancel / Отмена';
+
+  @override
+  String get languageChanged => 'Language changed / Язык изменен';
+
+  @override
+  String get signOutTitle => 'Sign out';
+
+  @override
+  String get signOutConfirmation => 'Are you sure you want to sign out? All unsaved data will be lost.';
+
+  @override
+  String get signOut => 'Sign out';
 }

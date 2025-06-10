@@ -130,7 +130,6 @@ abstract class AppLocalizations {
   String get licenses;
   String get clearData;
   String get clearDataConfirm;
-  String get dataCleared;
   String get exportData;
   String get importData;
   String get backup;
@@ -253,4 +252,57 @@ abstract class AppLocalizations {
   String get northwest;
   String get southeast;
   String get southwest;
+
+  // Additional strings for logs
+  String get clearAllLogs;
+  String get clearLogsTitle;
+  String get clearLogsConfirm;
+  String get filterByLevel;
+  String get all;
+  String get infoLogs;
+  String get warningLogs;
+  String get errorLogs;
+  String get loadingLogsError;
+  String get clearingError;
+
+  // Дополнительные строки для полной локализации
+  String get retryInterval;
+  String get minutesShort;
+  String get account;
+  String get pendingSend;
+  String get catchMap;
+  String get catches;
+  String get cooldownMessage;
+  String get dailyLimitReached;
+  String get catchSaved;
+  String get locationPermissionNeeded;
+  String get status;
+  String get locationPermissionDescription;
+  String get pleaseGrantPermission;
+  String get openSettings;
+  String get permissionGranted;
+
+  String get nameCannotBeEmpty;
+  String get nameCannotBeLonger;
+  String get symbols;
+  String get nameNotChanged;
+  String get nameSaved;
+  String get intervalSaved;
+  String get minute;
+  String get minutes2to4;
+  String get minutes5plus;
+  String get clearAllData;
+  String get clearAllDataConfirmation;
+  String get dataCleared;
+  String get offline;
+  String get noInternetConnection;
+  String get appDescription;
+  String get developedForSea;
+  String get languageLabel;
+  String get chooseLanguage;
+  String get cancelSlashCancel;
+  String get languageChanged;
+  String get signOutTitle;
+  String get signOutConfirmation;
+  String get signOut;
 }

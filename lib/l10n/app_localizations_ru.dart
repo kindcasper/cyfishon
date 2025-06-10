@@ -240,8 +240,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get clearDataConfirm => 'Вы уверены, что хотите очистить все данные?';
   @override
-  String get dataCleared => 'Данные очищены';
-  @override
   String get exportData => 'Экспорт данных';
   @override
   String get importData => 'Импорт данных';
@@ -467,4 +465,150 @@ class AppLocalizationsRu extends AppLocalizations {
   String get southeast => 'ЮВ';
   @override
   String get southwest => 'ЮЗ';
+
+  // Дополнительные строки для логов
+  @override
+  String get clearAllLogs => 'Очистить все';
+  
+  @override
+  String get clearLogsTitle => 'Очистить логи';
+  
+  @override
+  String get clearLogsConfirm => 'Вы уверены, что хотите удалить все логи?';
+  
+  @override
+  String get filterByLevel => 'Фильтр по уровню:';
+  
+  @override
+  String get all => 'Все';
+  
+  @override
+  String get infoLogs => 'Инфо';
+  
+  @override
+  String get warningLogs => 'Предупреждения';
+  
+  @override
+  String get errorLogs => 'Ошибки';
+  
+  @override
+  String get loadingLogsError => 'Ошибка загрузки логов';
+  
+  @override
+  String get clearingError => 'Ошибка очистки';
+
+  // Дополнительные строки для полной локализации
+  @override
+  String get retryInterval => 'Интервал повторных попыток';
+  
+  @override
+  String get minutesShort => 'мин';
+  
+  @override
+  String get account => 'Аккаунт';
+  
+  @override
+  String get pendingSend => 'Ожидает отправки';
+  
+  @override
+  String get catchMap => 'Карта поимок';
+  
+  @override
+  String get catches => 'поимок';
+
+  @override
+  String get cooldownMessage => 'сек минимальный кулдаун';
+
+  @override
+  String get dailyLimitReached => 'Дневной лимит достигнут';
+
+  @override
+  String get catchSaved => 'Поимка сохранена!';
+
+  @override
+  String get locationPermissionNeeded => 'Нужно разрешение на геолокацию';
+
+  @override
+  String get status => 'Статус';
+
+  @override
+  String get locationPermissionDescription => 'Для создания поимки необходимо разрешение на использование геолокации.';
+
+  @override
+  String get pleaseGrantPermission => 'Пожалуйста, предоставьте разрешение в настройках.';
+
+  @override
+  String get openSettings => 'Открыть настройки';
+
+  @override
+  String get permissionGranted => 'Разрешение получено!';
+
+  @override
+  String get nameCannotBeEmpty => 'Имя не может быть пустым';
+
+  @override
+  String get nameCannotBeLonger => 'Имя не может быть длиннее';
+
+  @override
+  String get symbols => 'символов';
+
+  @override
+  String get nameNotChanged => 'Имя не изменилось';
+
+  @override
+  String get nameSaved => 'Имя сохранено';
+
+  @override
+  String get intervalSaved => 'Интервал сохранен';
+
+  @override
+  String get minute => 'минута';
+
+  @override
+  String get minutes2to4 => 'минуты';
+
+  @override
+  String get minutes5plus => 'минут';
+
+  @override
+  String get clearAllData => 'Очистить все данные';
+
+  @override
+  String get clearAllDataConfirmation => 'Это удалит все поимки и логи. Действие нельзя отменить. Продолжить?';
+
+  @override
+  String get dataCleared => 'Данные очищены';
+
+  @override
+  String get offline => 'Офлайн';
+
+  @override
+  String get noInternetConnection => 'Нет подключения к интернету';
+
+  @override
+  String get appDescription => 'Приложение для сообщества рыбаков Кипра. Позволяет быстро делиться информацией о поимках тунца.';
+
+  @override
+  String get developedForSea => 'Разработано с учетом работы в море при отсутствии стабильного интернета.';
+
+  @override
+  String get languageLabel => 'Язык / Language';
+
+  @override
+  String get chooseLanguage => 'Выберите язык / Choose Language';
+
+  @override
+  String get cancelSlashCancel => 'Отмена / Cancel';
+
+  @override
+  String get languageChanged => 'Язык изменен / Language changed';
+
+  @override
+  String get signOutTitle => 'Выйти из аккаунта';
+
+  @override
+  String get signOutConfirmation => 'Вы уверены, что хотите выйти из аккаунта? Все несохраненные данные будут потеряны.';
+
+  @override
+  String get signOut => 'Выйти';
 }
