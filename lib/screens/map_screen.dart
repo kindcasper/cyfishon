@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -9,6 +10,7 @@ import '../services/location_service.dart';
 import '../services/compass_service.dart';
 import '../services/database_service.dart';
 import '../services/log_service.dart';
+import '../services/offline_map_service.dart';
 import '../models/catch_record.dart';
 import '../l10n/app_localizations.dart';
 
@@ -237,11 +239,13 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ),
                   children: [
-                    // Слой карты OpenStreetMap
+                    // Слой карты с офлайн поддержкой
                     TileLayer(
                       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.cyfishon.app',
                       maxZoom: 18,
+                      // Функция для получения офлайн тайлов
+                      tileProvider: OfflineTileProvider(),
                     ),
                     
                     // Слой маркеров поимок
@@ -307,5 +311,39 @@ class _MapScreenState extends State<MapScreen> {
         },
       ),
     );
+  }
+}
+
+/// Провайдер тайлов с офлайн поддержкой
+class OfflineTileProvider extends TileProvider {
+  final OfflineMapService _offlineMapService = OfflineMapService();
+
+  @override
+  ImageProvider getImage(TileCoordinates coordinates, TileLayer options) {
+    // Сначала пытаемся получить офлайн тайл
+    final offlineUrl = _offlineMapService.getOfflineTileUrl(
+      coordinates.x, 
+      coordinates.y, 
+      coordinates.z
+    );
+    
+    if (offlineUrl != null) {
+      // Используем офлайн тайл
+      final filePath = offlineUrl.replaceFirst('file://', '');
+      final file = File(filePath);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    }
+    
+    // Fallback на онлайн тайл
+    final url = options.urlTemplate!
+        .replaceAll('{x}', coordinates.x.toString())
+        .replaceAll('{y}', coordinates.y.toString())
+        .replaceAll('{z}', coordinates.z.toString());
+    
+    return NetworkImage(url, headers: {
+      'User-Agent': 'com.cyfishon.app',
+    });
   }
 }

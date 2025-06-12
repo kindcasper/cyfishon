@@ -60,6 +60,21 @@ flutter:
   # Ассеты
   assets:
     - pubspec.yaml
+    - assets/tiles/
+    - assets/tiles/10/603/403.png
+    - assets/tiles/10/603/404.png
+    - assets/tiles/10/603/405.png
+    - assets/tiles/10/603/406.png
+    - assets/tiles/10/603/407.png
+    - assets/tiles/10/604/403.png
+    - assets/tiles/10/604/404.png
+    - assets/tiles/10/604/405.png
+    - assets/tiles/10/604/406.png
+    - assets/tiles/10/604/407.png
+    - assets/tiles/10/605/403.png
+    - assets/tiles/10/605/404.png
+    - assets/tiles/10/605/405.png
+    - assets/tiles/10/605/406.png
   #   - assets/images/
   #   - assets/icons/
   

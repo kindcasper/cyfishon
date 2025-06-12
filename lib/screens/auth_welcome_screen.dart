@@ -205,6 +205,7 @@ class AuthWelcomeScreen extends StatelessWidget {
             ),
           ),
         ),
+        
       ],
     );
   }
@@ -239,4 +240,5 @@ class AuthWelcomeScreen extends StatelessWidget {
       ),
     );
   }
+
 }

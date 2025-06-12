@@ -698,7 +698,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await AuthService.logout();
         
         if (mounted) {
-          // Переходим на экран авторизации
+          // При выходе всегда переходим к стартовому экрану авторизации
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(

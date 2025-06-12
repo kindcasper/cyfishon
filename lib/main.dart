@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'config/app_config.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_welcome_screen.dart';
 import 'screens/home_screen.dart';
@@ -10,6 +8,7 @@ import 'services/log_service.dart';
 import 'services/server_sync_service.dart';
 import 'services/auth_service.dart';
 import 'services/locale_service.dart';
+import 'services/offline_map_service.dart';
 import 'l10n/app_localizations_delegate.dart';
 
 void main() async {
@@ -21,6 +20,9 @@ void main() async {
   
   // Инициализация локализации
   await LocaleService().initialize();
+  
+  // Инициализация офлайн карт
+  await OfflineMapService().initialize();
   
   // Логируем запуск приложения
   await LogService().logAppStart();
@@ -100,7 +102,7 @@ class _AppStartScreenState extends State<AppStartScreen> {
     
     if (!mounted) return;
     
-    // Проверяем авторизацию
+    // Проверяем авторизацию (офлайн режим)
     final isLoggedIn = await AuthService.autoLogin();
     
     if (isLoggedIn) {
@@ -112,7 +114,7 @@ class _AppStartScreenState extends State<AppStartScreen> {
         ),
       );
     } else {
-      // Пользователь не авторизован - показываем экран авторизации
+      // Нет авторизации - показываем экран авторизации
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => const AuthWelcomeScreen(),

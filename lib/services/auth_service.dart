@@ -13,49 +13,82 @@ class AuthService {
   /// Получить текущего пользователя
   static User? get currentUser => _currentUser;
   
-  /// Проверить, авторизован ли пользователь
+  /// Проверить, авторизован ли пользователь (локально)
   static Future<bool> isLoggedIn() async {
-    final token = await SecureStorageService.getAuthToken();
-    if (token == null || token.isEmpty) {
-      return false;
-    }
-    
-    // Проверяем, не истек ли токен
+    return await SecureStorageService.hasActiveAccount();
+  }
+  
+  /// Автоматический вход при запуске приложения (офлайн режим)
+  static Future<bool> autoLogin() async {
     try {
-      if (JwtDecoder.isExpired(token)) {
-        await _log.info('Токен истек, требуется повторная авторизация');
-        await logout();
+      // Получаем активный аккаунт из локального хранилища
+      final activeAccount = await SecureStorageService.getActiveAccount();
+      
+      if (activeAccount == null) {
+        await _log.info('Нет активного аккаунта для автоматического входа');
         return false;
       }
+
+      // Проверяем статус аккаунта
+      if (activeAccount.status != AccountStatus.active) {
+        await _log.info('Аккаунт требует повторной авторизации', 
+          'Статус: ${activeAccount.status.name}');
+        return false;
+      }
+
+      // Авторизуем пользователя локально
+      _currentUser = activeAccount.toUser();
+      await _log.info('Автоматический вход выполнен (офлайн)', activeAccount.userEmail);
+
+      // Запускаем фоновую проверку токена (если есть интернет)
+      _backgroundTokenVerification(activeAccount);
+
       return true;
     } catch (e) {
-      await _log.error('Ошибка при проверке токена', e);
-      await logout();
+      await _log.error('Ошибка автоматического входа', e);
       return false;
     }
   }
-  
-  /// Автоматический вход при запуске приложения
-  static Future<bool> autoLogin() async {
+
+  /// Фоновая проверка токена на сервере
+  static void _backgroundTokenVerification(LocalAccount account) async {
     try {
-      if (!await isLoggedIn()) {
-        return false;
+      if (account.token == null) return;
+
+      // Проверяем, не истек ли токен локально
+      if (JwtDecoder.isExpired(account.token!)) {
+        await _log.info('Токен истек локально');
+        await SecureStorageService.updateAccountStatus(
+          account.userId, 
+          AccountStatus.expired
+        );
+        return;
       }
-      
-      // Проверяем токен на сервере
+
+      // Проверяем токен на сервере (в фоне)
       final response = await ApiService.verifyToken();
-      if (response.success && response.user != null) {
-        _currentUser = response.user;
-        await _log.info('Автоматический вход выполнен', response.user!.email);
-        return true;
+      if (!response.success) {
+        await _log.info('Токен недействителен на сервере');
+        await SecureStorageService.updateAccountStatus(
+          account.userId, 
+          AccountStatus.expired
+        );
       } else {
-        await logout();
-        return false;
+        await _log.info('Токен подтвержден сервером');
+        // Обновляем данные пользователя если они изменились
+        if (response.user != null) {
+          final updatedAccount = account.copyWith(
+            userName: response.user!.name,
+            userEmail: response.user!.email,
+            lastLogin: DateTime.now(),
+          );
+          await SecureStorageService.saveAccount(updatedAccount);
+          _currentUser = response.user;
+        }
       }
     } catch (e) {
-      await _log.error('Ошибка автоматического входа', e);
-      await logout();
-      return false;
+      // Ошибки фоновой проверки не критичны
+      await _log.info('Фоновая проверка токена недоступна (нет интернета)');
     }
   }
   
@@ -81,12 +114,24 @@ class AuthService {
       final response = await ApiService.register(request);
       
       if (response.success && response.token != null && response.user != null) {
-        // Сохраняем данные авторизации
-        await _saveAuthData(response.token!, response.user!);
+        // Создаем локальный аккаунт
+        final localAccount = LocalAccount(
+          userId: response.user!.id,
+          userName: response.user!.name,
+          userEmail: response.user!.email,
+          token: response.token,
+          status: AccountStatus.active,
+          lastLogin: DateTime.now(),
+        );
+
+        // Сохраняем аккаунт и делаем его активным
+        await SecureStorageService.saveAccount(localAccount);
         _currentUser = response.user;
         
         // Сбрасываем кэшированный user_id для использования нового ID пользователя
         UserService().resetUserId();
+        
+        await _log.info('Регистрация успешна', response.user!.email);
         
         return AuthResult.success(
           user: response.user!,
@@ -121,12 +166,24 @@ class AuthService {
       final response = await ApiService.login(request);
       
       if (response.success && response.token != null && response.user != null) {
-        // Сохраняем данные авторизации
-        await _saveAuthData(response.token!, response.user!);
+        // Создаем или обновляем локальный аккаунт
+        final localAccount = LocalAccount(
+          userId: response.user!.id,
+          userName: response.user!.name,
+          userEmail: response.user!.email,
+          token: response.token,
+          status: AccountStatus.active,
+          lastLogin: DateTime.now(),
+        );
+
+        // Сохраняем аккаунт и делаем его активным
+        await SecureStorageService.saveAccount(localAccount);
         _currentUser = response.user;
         
         // Сбрасываем кэшированный user_id для использования нового ID пользователя
         UserService().resetUserId();
+        
+        await _log.info('Вход выполнен успешно', response.user!.email);
         
         return AuthResult.success(
           user: response.user!,
@@ -140,8 +197,46 @@ class AuthService {
       return AuthResult.error('Ошибка подключения к серверу');
     }
   }
+
+  /// Вход в существующий локальный аккаунт
+  static Future<AuthResult> loginToLocalAccount(LocalAccount account) async {
+    try {
+      if (account.status == AccountStatus.passwordReset) {
+        return AuthResult.error('Пароль был сброшен. Необходимо войти с новым паролем.');
+      }
+
+      if (account.status == AccountStatus.expired) {
+        return AuthResult.error('Сессия истекла. Необходимо войти заново.');
+      }
+
+      // Устанавливаем аккаунт как активный
+      await SecureStorageService.setActiveAccount(account.userId);
+      
+      // Обновляем время последнего входа
+      final updatedAccount = account.copyWith(lastLogin: DateTime.now());
+      await SecureStorageService.saveAccount(updatedAccount);
+      
+      _currentUser = account.toUser();
+      
+      // Сбрасываем кэшированный user_id для использования ID этого пользователя
+      UserService().resetUserId();
+      
+      await _log.info('Вход в локальный аккаунт', account.userEmail);
+      
+      // Запускаем фоновую проверку токена
+      _backgroundTokenVerification(account);
+      
+      return AuthResult.success(
+        user: account.toUser(),
+        message: 'Добро пожаловать, ${account.userName}!',
+      );
+    } catch (e) {
+      await _log.error('Ошибка при входе в локальный аккаунт', e);
+      return AuthResult.error('Ошибка входа в аккаунт');
+    }
+  }
   
-  /// Восстановление пароля
+  /// Восстановление пароля (требует интернет)
   static Future<AuthResult> forgotPassword({
     required String email,
   }) async {
@@ -158,6 +253,20 @@ class AuthService {
       final response = await ApiService.forgotPassword(request);
       
       if (response.success) {
+        // Находим локальный аккаунт с таким email и помечаем как требующий сброса пароля
+        final accounts = await SecureStorageService.getAllAccounts();
+        final accountIndex = accounts.indexWhere(
+          (a) => a.userEmail.toLowerCase() == email.toLowerCase()
+        );
+        
+        if (accountIndex != -1) {
+          await SecureStorageService.updateAccountStatus(
+            accounts[accountIndex].userId, 
+            AccountStatus.passwordReset
+          );
+          await _log.info('Локальный аккаунт помечен как требующий сброса пароля', email);
+        }
+        
         return AuthResult.success(
           message: response.message ?? 'Новый пароль отправлен на email',
         );
@@ -166,27 +275,57 @@ class AuthService {
       }
     } catch (e) {
       await _log.error('Ошибка при восстановлении пароля', e);
-      return AuthResult.error('Ошибка подключения к серверу');
+      return AuthResult.error('Для сброса пароля необходимо подключение к интернету');
     }
   }
   
-  /// Выход пользователя
+  /// Выход пользователя (переход к выбору аккаунта)
   static Future<void> logout() async {
     try {
-      // Уведомляем сервер о выходе
-      await ApiService.logout();
-    } catch (e) {
-      await _log.error('Ошибка при уведомлении сервера о выходе', e);
-    } finally {
-      // Очищаем локальные данные в любом случае
-      await SecureStorageService.clearAuthData();
+      // Уведомляем сервер о выходе (если есть интернет)
+      try {
+        await ApiService.logout();
+      } catch (e) {
+        await _log.info('Не удалось уведомить сервер о выходе (нет интернета)');
+      }
+      
+      // Сбрасываем активный аккаунт, но не удаляем его
+      final activeAccount = await SecureStorageService.getActiveAccount();
+      if (activeAccount != null) {
+        await SecureStorageService.setActiveAccount(-1); // Сбрасываем активный аккаунт
+      }
+      
       _currentUser = null;
       
       // Сбрасываем кэшированный user_id при выходе
       UserService().resetUserId();
       
       await _log.info('Пользователь вышел из системы');
+    } catch (e) {
+      await _log.error('Ошибка при выходе', e);
     }
+  }
+
+  /// Полное удаление аккаунта с устройства
+  static Future<void> removeAccount(int userId) async {
+    try {
+      await SecureStorageService.removeAccount(userId);
+      
+      // Если удаляем текущего пользователя, сбрасываем его
+      if (_currentUser?.id == userId) {
+        _currentUser = null;
+        UserService().resetUserId();
+      }
+      
+      await _log.info('Аккаунт удален с устройства', userId.toString());
+    } catch (e) {
+      await _log.error('Ошибка при удалении аккаунта', e);
+    }
+  }
+
+  /// Получить все локальные аккаунты
+  static Future<List<LocalAccount>> getAllLocalAccounts() async {
+    return await SecureStorageService.getAllAccounts();
   }
   
   /// Получить профиль пользователя
@@ -195,12 +334,16 @@ class AuthService {
       final user = await ApiService.getProfile();
       if (user != null) {
         _currentUser = user;
-        // Обновляем сохраненные данные
-        await SecureStorageService.saveUserData(
-          userId: user.id,
-          userName: user.name,
-          userEmail: user.email,
-        );
+        
+        // Обновляем локальный аккаунт
+        final activeAccount = await SecureStorageService.getActiveAccount();
+        if (activeAccount != null) {
+          final updatedAccount = activeAccount.copyWith(
+            userName: user.name,
+            userEmail: user.email,
+          );
+          await SecureStorageService.saveAccount(updatedAccount);
+        }
       }
       return user;
     } catch (e) {
@@ -230,18 +373,6 @@ class AuthService {
       await _log.error('Ошибка при обновлении профиля', e);
       return false;
     }
-  }
-  
-  /// Сохранить данные авторизации
-  static Future<void> _saveAuthData(String token, User user) async {
-    await Future.wait([
-      SecureStorageService.saveAuthToken(token),
-      SecureStorageService.saveUserData(
-        userId: user.id,
-        userName: user.name,
-        userEmail: user.email,
-      ),
-    ]);
   }
   
   /// Валидация данных регистрации
